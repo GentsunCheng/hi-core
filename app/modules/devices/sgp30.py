@@ -40,33 +40,31 @@ if debug_value == 'False' or debug_value is None:
         
 class Device():
     def __init__(self):
-        self.name = "sgp30"
-        self.type = "sensor"
-        self.readme = "Its a sensor to measure CO2 and TVOC"
-        self.param = {
-            "present": {
-                "co2": {
-                    "content": 400,
-                    "measure": "ppm"
-                },
-                "tvoc": {
-                    "content": 0,
-                    "measure": "ppb"
+        self.data = {
+            "name": "sgp30",
+            "id": None,
+            "type": "sensor",
+            "readme": "Its a sensor to measure CO2 and TVOC",
+            "param": {
+                "present": {
+                    "co2": {
+                        "content": 400,
+                        "measure": "ppm"
+                    },
+                    "tvoc": {
+                        "content": 0,
+                        "measure": "ppb"
+                    }
                 }
             }
         }
-        self.data = {
-            "name": self.name,
-            "id": None,
-            "type": self.type,
-            "readme": self.readme,
-            "param": self.param
-        }
         self.action = False
         self.init_time = 15
-        self.thread = threading.Thread(target=self.__read__)
         if debug_value == 'False' or debug_value is None:
             self.sgp30 = SGP30()
+        self.thread = threading.Thread(target=self.__read__)
+        self.thread.start()
+        
 
     def __read__(self):
         # 初始化记录上一次状态及上次触发报警时间
@@ -82,8 +80,8 @@ class Device():
                     co2, tvoc = 400, 0
                 else:
                     co2, tvoc = self.sgp30.read()
-                self.param["present"]["co2"]["content"] = co2
-                self.param["present"]["tvoc"]["content"] = tvoc
+                self.data["param"]["present"]["co2"]["content"] = co2
+                self.data["param"]["present"]["tvoc"]["content"] = tvoc
                 current_time = time.time()
 
                 # 根据预设阈值判断 CO2 状态（可根据实际情况调整）

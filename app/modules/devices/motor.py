@@ -1,4 +1,5 @@
 import time
+import json
 import threading
 from periphery import GPIO
 
@@ -148,27 +149,37 @@ class StepperMotorFullStep:
 
 class Device:
     def __init__(self):
-        self.name = "draperies"
-        self.type = "actuator"
-        self.readme = "This unit is an actuator that controls the draperies. It can be used to open or close the draperies."
-        self.param = {
-            "present": {
-                "status": "open"
-            },
-            "selection": {
-                "status": ["__SELECT__", "open", "closed"],
-            }
-        }
         self.data = {
-            "name": self.name,
+            "name": "draperies",
             "id": None,
-            "type": self.type,
-            "readme": self.readme,
-            "param": self.param
+            "type": "draperies",
+            "readme": "This unit is an actuator that controls the draperies. It can be used to open or close the draperies.",
+            "param": {
+                "present": {
+                    "status": "open"
+                },
+                "selection": {
+                    "status": ["__SELECT__", "open", "closed"],
+                }
+            }
         }
         self.action = False
         self.init_time = 0
         self.motor = StepperMotorFullStep([70, 69, 72, 231])
+        self.thread = threading.Thread(target=self.__run__)
+        self.thread.start()
+
+    def __run__(self):
+        data = self.data
+        while True:
+            if json.dumps(self.data["param"]["present"], sort_keys=True) != json.dumps(data["param"]["present"], sort_keys=True):
+                if self.data["param"]["present"]["status"] == "open":
+                    self.motor.rotate(rotations=5, speed_level=2, direction="cw")
+                elif self.data["param"]["present"]["status"] == "closed":
+                    self.motor.rotate(rotations=5, speed_level=2, direction="ccw")
+                data = self.data
+            time.sleep(1)
+
 
 
 # 使用示例

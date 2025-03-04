@@ -1,5 +1,6 @@
 import threading
 import time
+import json
 from periphery import GPIO
 
 class Electromagnet:
@@ -64,27 +65,36 @@ class Electromagnet:
 
 class Device():
     def __init__(self):
-        self.name = "door"
-        self.type = "actuator"
-        self.readme = "This is a door. It can be used to open and close the door."
-        self.param = {
-            "present": {
-                "status": "open"
-            },
-            "selection": {
-                "status": ["__SELECT__", "open", "closed"],
-            }
-        }
         self.data = {
-            "name": self.name,
+            "name": "door",
             "id": None,
-            "type": self.type,
-            "readme": self.readme,
-            "param": self.param
+            "type": "door",
+            "readme": "This is a door. It can be used to open and close the door.",
+            "param": {
+                "present": {
+                    "status": "open"
+                },
+                "selection": {
+                    "status": ["__SELECT__", "open", "closed"],
+                }
+            }
         }
         self.action = False
         self.init_time = 0
         self.magnet = Electromagnet(226)
+        self.thread = threading.Thread(target=self.__run__)
+        self.thread.start()
+
+    def __run__(self):
+        data = self.data
+        while True:
+            if json.dumps(self.data["param"]["present"], sort_keys=True) != json.dumps(data["param"]["present"], sort_keys=True):
+                if self.data["param"]["present"]["status"] == "open":
+                    self.magnet.start(duration=15)
+                elif self.data["param"]["present"]["status"] == "closed":
+                    self.magnet.stop()
+                data = self.data
+            time.sleep(1)
 
 if __name__ == "__main__":
     # 假设 GPIO 芯片为 "/dev/gpiochip0"，引脚号为 226
