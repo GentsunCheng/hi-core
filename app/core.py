@@ -1,6 +1,6 @@
 import time
 import json
-# from modules.api import api
+from modules.api import api
 from modules.devices import device_classes
 
 # 构造初始化数据
@@ -29,7 +29,7 @@ for name, DeviceClass in device_classes.items():
     # 假设 device.init_time 表示初始化需要等待的时间
     if device.init_time > init_time:
         init_time = device.init_time
-    device_instances[name] = device
+    device_instances[device.data["id"]] = device
 
 del i
 
@@ -42,13 +42,15 @@ cmd_json_data = {
 }
 
 # 初始化 hi_api 
-# hi_api = api.HI_api()
-# hi_api.set_data(json.dumps(all_json_data))
+hi_api = api.HI_api()
+hi_api.set_data(json.dumps(all_json_data))
 
 # 如果需要等待初始化时间，可以使用 time.sleep(init_time)
 # time.sleep(init_time)
 
 while True:
+    # 每隔一段时间循环一次
+    time.sleep(1)
     # 清空之前的命令数据
     cmd_json_data["devices"] = []
     
@@ -62,8 +64,15 @@ while True:
     print(json.dumps(cmd_json_data, indent=4))
 
     # 如果有命令数据则发送
-    # if cmd_json_data["devices"]:
-    #     hi_api.oprate(json.dumps(cmd_json_data))
-    
-    # 每隔一段时间循环一次
-    time.sleep(1)
+    if cmd_json_data["devices"]:
+        data = hi_api.oprate(json.dumps(cmd_json_data))
+        try:
+            response = json.loads(data)
+        except json.JSONDecodeError:
+            print("无法解析JSON数据")
+            continue
+        for item in response["actions"]:
+            device_instances[item["id"]]["param"]["present"] = item["param"]
+            all_json_data["devices"][item["id"]]["param"]["present"] = item["param"]
+            hi_api.set_data(json.dumps(all_json_data))
+

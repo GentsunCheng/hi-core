@@ -1,38 +1,43 @@
+import os
 import time
 import threading
 from periphery import I2C
-class SGP30:
-    def __init__(self):
-        self.addr = 0x58
-        self.i2c = I2C("/dev/i2c-0")
-        self.stat = False
 
-        th = threading.Thread(target=self.__wait_init__)
+debug_value = os.environ.get('DEBUG')
 
-        msgs = [self.i2c.Message([0x20, 0x03])]
-        self.i2c.transfer(self.addr, msgs)
-        th.start()
+if debug_value == 'False' or debug_value is None:
+    class SGP30:
+        def __init__(self):
+            self.addr = 0x58
+            self.i2c = I2C("/dev/i2c-0")
+            self.stat = False
 
-    def __wait_init__(self):
-        print("please wait 15s for sgp30 init")
-        time.sleep(15)
-        self.stat = True
+            th = threading.Thread(target=self.__wait_init__)
 
-    def read(self):
-        """
-        获取sgp30数据, 初始化至少15秒使用
-        返回co2, tvoc
-        :return: int, int
-        """
-        while not self.stat:
-            time.sleep(1)
-        msgs = [self.i2c.Message([0x20, 0x08])]
-        self.i2c.transfer(self.addr, msgs)
-        time.sleep(0.1)
-        msgs = [self.i2c.Message([0x00, 0x00, 0x00, 0x00], read=True)]
-        self.i2c.transfer(self.addr, msgs)
-        return int(msgs[0].data[0]) << 8 | int(msgs[0].data[1]), int(msgs[0].data[2]) << 8 | int(msgs[0].data[3])
-    
+            msgs = [self.i2c.Message([0x20, 0x03])]
+            self.i2c.transfer(self.addr, msgs)
+            th.start()
+
+        def __wait_init__(self):
+            print("please wait 15s for sgp30 init")
+            time.sleep(15)
+            self.stat = True
+
+        def read(self):
+            """
+            获取sgp30数据, 初始化至少15秒使用
+            返回co2, tvoc
+            :return: int, int
+            """
+            while not self.stat:
+                time.sleep(1)
+            msgs = [self.i2c.Message([0x20, 0x08])]
+            self.i2c.transfer(self.addr, msgs)
+            time.sleep(0.1)
+            msgs = [self.i2c.Message([0x00, 0x00, 0x00, 0x00], read=True)]
+            self.i2c.transfer(self.addr, msgs)
+            return int(msgs[0].data[0]) << 8 | int(msgs[0].data[1]), int(msgs[0].data[2]) << 8 | int(msgs[0].data[3])
+        
 class Device():
     def __init__(self):
         self.name = "sgp30"
@@ -60,7 +65,8 @@ class Device():
         self.action = False
         self.init_time = 15
         self.thread = threading.Thread(target=self.__read__)
-        # self.sgp30 = SGP30()
+        if debug_value == 'False' or debug_value is None:
+            self.sgp30 = SGP30()
 
     def __read__(self):
         # 初始化记录上一次状态及上次触发报警时间
@@ -72,7 +78,10 @@ class Device():
 
         while True:
             try:
-                co2, tvoc = self.sgp30.read()
+                if debug_value == 'True':
+                    co2, tvoc = 400, 0
+                else:
+                    co2, tvoc = self.sgp30.read()
                 self.param["present"]["co2"]["content"] = co2
                 self.param["present"]["tvoc"]["content"] = tvoc
                 current_time = time.time()
