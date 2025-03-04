@@ -167,6 +167,7 @@ class Device:
             "param": self.param
         }
         self.action = False
+        self.init_time = 0
         self.motor = StepperMotorFullStep([70, 69, 72, 231])
 
 

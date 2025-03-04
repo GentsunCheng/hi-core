@@ -83,6 +83,7 @@ class Device():
             "param": self.param
         }
         self.action = False
+        self.init_time = 0
         self.magnet = Electromagnet(226)
 
 if __name__ == "__main__":

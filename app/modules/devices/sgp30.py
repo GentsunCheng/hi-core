@@ -58,6 +58,7 @@ class Device():
             "param": self.param
         }
         self.action = False
+        self.init_time = 15
         self.thread = threading.Thread(target=self.__read__)
         # self.sgp30 = SGP30()
 
