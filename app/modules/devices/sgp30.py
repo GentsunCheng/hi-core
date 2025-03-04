@@ -50,4 +50,77 @@ class Device():
                 }
             }
         }
-        self.sgp30 = SGP30()
+        self.data = {
+            "name": self.name,
+            "id": None,
+            "type": self.type,
+            "readme": self.readme,
+            "param": self.param
+        }
+        self.action = False
+        self.thread = threading.Thread(target=self.__read__)
+        # self.sgp30 = SGP30()
+
+    def __read__(self):
+        # 初始化记录上一次状态及上次触发报警时间
+        # 这里定义状态分为三档："normal" 正常，"abnormal1" 异常一级，"abnormal2" 异常二级
+        prev_co2_level = "normal"
+        prev_tvoc_level = "normal"
+        last_trigger_time_co2 = time.time()
+        last_trigger_time_tvoc = time.time()
+
+        while True:
+            try:
+                co2, tvoc = self.sgp30.read()
+                self.param["present"]["co2"]["content"] = co2
+                self.param["present"]["tvoc"]["content"] = tvoc
+                current_time = time.time()
+
+                # 根据预设阈值判断 CO2 状态（可根据实际情况调整）
+                if co2 < 1000:
+                    current_co2_level = "normal"
+                elif co2 < 1500:
+                    current_co2_level = "abnormal1"
+                else:
+                    current_co2_level = "abnormal2"
+
+                # 根据预设阈值判断 TVOC 状态（可根据实际情况调整）
+                if tvoc < 500:
+                    current_tvoc_level = "normal"
+                elif tvoc < 1000:
+                    current_tvoc_level = "abnormal1"
+                else:
+                    current_tvoc_level = "abnormal2"
+
+                # ----- CO2 逻辑 -----
+                # 情况1：从正常进入异常
+                if prev_co2_level == "normal" and current_co2_level != "normal":
+                    self.action = True
+                    last_trigger_time_co2 = current_time
+                # 情况2：在异常状态下进一步升高一级（例如从 abnormal1 升至 abnormal2）
+                elif prev_co2_level == "abnormal1" and current_co2_level == "abnormal2":
+                    self.action = True
+                    last_trigger_time_co2 = current_time
+                # 情况3：持续异常，每隔一分钟触发一次
+                elif current_co2_level != "normal" and (current_time - last_trigger_time_co2 >= 60):
+                    self.action = True
+                    last_trigger_time_co2 = current_time
+
+                # ----- TVOC 逻辑 -----
+                if prev_tvoc_level == "normal" and current_tvoc_level != "normal":
+                    self.action = True
+                    last_trigger_time_tvoc = current_time
+                elif prev_tvoc_level == "abnormal1" and current_tvoc_level == "abnormal2":
+                    self.action = True
+                    last_trigger_time_tvoc = current_time
+                elif current_tvoc_level != "normal" and (current_time - last_trigger_time_tvoc >= 60):
+                    self.action = True
+                    last_trigger_time_tvoc = current_time
+
+                # 更新上一次的状态
+                prev_co2_level = current_co2_level
+                prev_tvoc_level = current_tvoc_level
+
+                time.sleep(1)
+            except KeyboardInterrupt:
+                break

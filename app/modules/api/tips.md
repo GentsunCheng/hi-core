@@ -17,7 +17,7 @@
 - `type`: 设备类型，如 "light"（灯光）、"refrigeration"（空调）、"sensor"（传感器）等。
 - `param`: 包含设备的当前状态和可选设置。
   - `present`: 当前设备的状态和参数，例如温度、亮度、颜色等。
-  - `selection`: 可选择的状态和参数范围，如温度范围、亮度范围、开关状态等。特殊字段`__RANGE__`表示该设备支持范围设置，如温度范围、亮度范围等。
+  - `selection`: 可选择的状态和参数范围，如温度范围、亮度范围、开关状态等。其中数据若为数组，则数组第一位代表范围或选项的标志，其中`__SELECT__`代表选项，`__RANGE__`代表整数范围。数组中的特殊标志仅仅只是告知你其中数据的选择方法，无任何其他的特殊含义，且不作为返回的json的数据。
 
 > 注意：`param`可能会包含任何非标准的参数，包括但不限于已给出的参数。
 
@@ -84,9 +84,9 @@
             "color": "yellow"
           },
           "selection": {
-            "status": ["on", "off"],
-            "lightness": [0, 1, 2, 3],
-            "color": ["yellow", "white"]
+            "status": ["__SELECT__", "on", "off"],
+            "lightness": ["__SELECT__", 0, 1, 2, 3],
+            "color": ["__SELECT__", "yellow", "white"]
           }
         }
       },
@@ -102,7 +102,7 @@
             "color_rgb": "[64, 127, 255]"
           },
           "selection": {
-            "status": ["on", "off"],
+            "status": ["__SELECT__", "on", "off"],
             "lightness": ["__RANGE__", 0, 100],
             "color_rgb": [["__RANGE__", 0, 255], ["__RANGE__", 0, 255], ["__RANGE__", 0, 255]]
           }
@@ -121,10 +121,10 @@
             "mode": "cold"
           },
           "selection": {
-            "status": ["on", "off"],
-            "temp": [16, 25, 30],
-            "air_velocity": [1, 2, 3],
-            "mode": ["cold", "hot", "dry", "air_circulate"]
+            "status": ["__SELECT__", "on", "off"],
+            "temp": ["__RANGE__", 16, 30],
+            "air_velocity": ["__SELECT__", 1, 2, 3],
+            "mode": ["__SELECT__", "cold", "hot", "dry", "air_circulate"]
           }
         }
       },
@@ -141,10 +141,10 @@
             "mode": "cold"
           },
           "selection": {
-            "status": ["on", "off"],
-            "temp": [16, 25, 30],
-            "air_velocity": [1, 2, 3],
-            "mode": ["cold", "hot", "dry", "air_circulate"]
+            "status": ["__SELECT__", "on", "off"],
+            "temp": ["__RANGE__", 16, 30],
+            "air_velocity": ["__SELECT__", 1, 2, 3],
+            "mode": ["__SELECT__", "cold", "hot", "dry", "air_circulate"]
           }
         }
       },

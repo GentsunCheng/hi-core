@@ -65,15 +65,24 @@ class Electromagnet:
 class Device():
     def __init__(self):
         self.name = "door"
+        self.type = "actuator"
         self.readme = "This is a door. It can be used to open and close the door."
         self.param = {
             "present": {
                 "status": "open"
             },
             "selection": {
-                "status": ["open", "closed"],
+                "status": ["__SELECT__", "open", "closed"],
             }
         }
+        self.data = {
+            "name": self.name,
+            "id": None,
+            "type": self.type,
+            "readme": self.readme,
+            "param": self.param
+        }
+        self.action = False
         self.magnet = Electromagnet(226)
 
 if __name__ == "__main__":

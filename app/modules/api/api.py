@@ -9,6 +9,12 @@ class HI_api:
         with open(tips_path, "r", encoding="utf-8") as f:
             self.tips = f.read()
         self.messages = [{"role": "system", "content": self.tips}]
+        self.data = {}
+        self.messages.append({"role": "user", "content": self.data})
+
+    def set_data(self, data):
+        self.data = data
+        self.messages[1]["content"] = self.data
 
     def oprate(self, data):
         messages = self.messages

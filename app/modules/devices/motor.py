@@ -149,15 +149,24 @@ class StepperMotorFullStep:
 class Device:
     def __init__(self):
         self.name = "draperies"
+        self.type = "actuator"
         self.readme = "This unit is an actuator that controls the draperies. It can be used to open or close the draperies."
         self.param = {
             "present": {
                 "status": "open"
             },
             "selection": {
-                "status": ["open", "closed"],
+                "status": ["__SELECT__", "open", "closed"],
             }
         }
+        self.data = {
+            "name": self.name,
+            "id": None,
+            "type": self.type,
+            "readme": self.readme,
+            "param": self.param
+        }
+        self.action = False
         self.motor = StepperMotorFullStep([70, 69, 72, 231])
 
 
