@@ -146,6 +146,21 @@ class StepperMotorFullStep:
             gpio.write(False)
             gpio.close()
 
+class Device:
+    def __init__(self):
+        self.name = "draperies"
+        self.readme = "This unit is an actuator that controls the draperies. It can be used to open or close the draperies."
+        self.param = {
+            "present": {
+                "status": "open"
+            },
+            "selection": {
+                "status": ["open", "closed"],
+            }
+        }
+        self.motor = StepperMotorFullStep([70, 69, 72, 231])
+
+
 # 使用示例
 if __name__ == "__main__":
     # 请根据你的电机实际步数设置 steps_per_revolution，

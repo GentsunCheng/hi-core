@@ -32,3 +32,22 @@ class SGP30:
         msgs = [self.i2c.Message([0x00, 0x00, 0x00, 0x00], read=True)]
         self.i2c.transfer(self.addr, msgs)
         return int(msgs[0].data[0]) << 8 | int(msgs[0].data[1]), int(msgs[0].data[2]) << 8 | int(msgs[0].data[3])
+    
+class Device():
+    def __init__(self):
+        self.name = "sgp30"
+        self.type = "sensor"
+        self.readme = "Its a sensor to measure CO2 and TVOC"
+        self.param = {
+            "present": {
+                "co2": {
+                    "content": 400,
+                    "measure": "ppm"
+                },
+                "tvoc": {
+                    "content": 0,
+                    "measure": "ppb"
+                }
+            }
+        }
+        self.sgp30 = SGP30()

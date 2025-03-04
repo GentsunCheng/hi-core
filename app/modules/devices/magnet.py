@@ -62,6 +62,20 @@ class Electromagnet:
         """
         self.gpio.close()
 
+class Device():
+    def __init__(self):
+        self.name = "door"
+        self.readme = "This is a door. It can be used to open and close the door."
+        self.param = {
+            "present": {
+                "status": "open"
+            },
+            "selection": {
+                "status": ["open", "closed"],
+            }
+        }
+        self.magnet = Electromagnet(226)
+
 if __name__ == "__main__":
     # 假设 GPIO 芯片为 "/dev/gpiochip0"，引脚号为 226
     magnet = Electromagnet(226)
