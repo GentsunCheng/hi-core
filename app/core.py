@@ -1,9 +1,11 @@
+import os
 import time
 import json
-import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from modules.api import api
 from modules.devices import device_classes
+
+debug_value = os.environ.get('DEBUG')
 
 # 构造初始化数据
 all_json_data = {
@@ -35,7 +37,8 @@ for name, DeviceClass in device_classes.items():
 
 del i
 
-print(json.dumps(all_json_data, indent=4))
+if debug_value == 'True':
+    print(json.dumps(all_json_data, indent=4))
 
 # 初始化命令数据结构
 cmd_json_data = {
@@ -85,8 +88,9 @@ while True:
             cmd_json_data["devices"].append(device.data)
             # 修改状态为 False，确保下次不重复发送同样的命令
             device.action = False
-
-    print(json.dumps(cmd_json_data, indent=4))
+            
+    if debug_value == 'True':
+        print(json.dumps(cmd_json_data, indent=4))
 
     # 如果有命令数据则发送
     if cmd_json_data["devices"]:
