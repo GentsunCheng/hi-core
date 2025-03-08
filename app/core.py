@@ -1,9 +1,12 @@
 import os
 import time
 import json
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from modules.api import api
+from modules.api import Hi_AI
 from modules.devices import device_classes
+
+from flask import Flask, request, jsonify
 
 class DeviceManager:
     def __init__(self):
@@ -18,7 +21,7 @@ class DeviceManager:
         }
         self.device_instances = {}
         self.init_time_dict = {}
-        self.hi_api = api.HI_api()
+        self.hi_ai = Hi_AI.HIAI_auto()
         self.cmd_json_data = {"action": "cmd", "devices": []}
         self._initialize_devices()
         self._start_device_initialization()
@@ -35,7 +38,7 @@ class DeviceManager:
             if device.init_time != 0:
                 self.init_time_dict[device.data["id"]] = device.init_time
             self.device_instances[device.data["id"]] = device
-        self.hi_api.set_data(json.dumps(self.all_json_data))
+        self.hi_ai.set_data(json.dumps(self.all_json_data))
         if self.debug_value == 'True':
             print(json.dumps(self.all_json_data, indent=4))
 
@@ -73,7 +76,7 @@ class DeviceManager:
             if self.debug_value == 'True':
                 print(json.dumps(self.cmd_json_data, indent=4))
             if self.cmd_json_data["devices"]:
-                data = self.hi_api.oprate(json.dumps(self.cmd_json_data))
+                data = self.hi_ai.oprate(json.dumps(self.cmd_json_data))
                 try:
                     response = json.loads(data)
                 except json.JSONDecodeError:
@@ -88,9 +91,45 @@ class DeviceManager:
             if self.device_instances[item["id"]]:
                 self.device_instances[item["id"]].data["param"]["present"] = item["param"]
                 self.all_json_data["devices"][item["id"]]["param"]["present"] = item["param"]
-                self.hi_api.set_data(json.dumps(self.all_json_data))
+                self.hi_ai.set_data(json.dumps(self.all_json_data))
 
 
-if __name__ == "__main__":
-    manager = DeviceManager()
+# 实例化设备管理器
+manager = DeviceManager()
+
+app = Flask(__name__)
+
+# 单独启动设备管理器的 run 方法，避免阻塞 API 主线程
+def run_manager():
     manager.run()
+
+SECRET_API_KEY = 'debug_key'
+
+# 添加密钥认证检查，在每次请求前验证密钥
+@app.before_request
+def authenticate():
+    # 从请求头中获取密钥，约定使用 'X-API-Key' 作为密钥字段
+    api_key = request.headers.get('X-API-Key')
+    if api_key != SECRET_API_KEY:
+        return jsonify({"error": "无效的 API 密钥"}), 401
+
+threading.Thread(target=run_manager, daemon=True).start()
+
+# 定义一个 GET 接口，用于读取所有设备的数据
+@app.route('/api/devices', methods=['GET'])
+def get_devices():
+    # 直接返回 DeviceManager 实例中的 all_json_data 数据
+    return jsonify(manager.all_json_data)
+
+# 定义一个 POST 接口，用于下发控制命令
+@app.route('/api/control', methods=['POST'])
+def control_device():
+    data = request.data.decode('utf-8')
+    if not data:
+        return jsonify({"error": "无效的JSON数据"}), 400
+    # cmd 函数接收的是 JSON 字符串，所以先将接收到的 JSON 数据转换为字符串再传入
+    manager.cmd(data)
+    return jsonify({"status": "OK"})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
