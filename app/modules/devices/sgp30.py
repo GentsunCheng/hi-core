@@ -5,6 +5,8 @@ from periphery import I2C
 
 debug_value = os.environ.get('DEBUG')
 
+debug_value = 'True'
+
 if debug_value == 'False' or debug_value is None:
     class SGP30:
         def __init__(self):
@@ -59,7 +61,7 @@ class Device():
             }
         }
         self.action = False
-        self.init_time = 15
+        self.init_time = 15 if debug_value == 'False' or debug_value is None else 0
         if debug_value == 'False' or debug_value is None:
             self.sgp30 = SGP30()
         self.thread = threading.Thread(target=self.__read__)

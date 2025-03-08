@@ -1,6 +1,7 @@
-import threading
 import time
 import json
+import copy
+import threading
 from periphery import GPIO
 
 class Electromagnet:
@@ -57,10 +58,7 @@ class Electromagnet:
         # 确保电磁铁关闭
         self.gpio.write(False)
 
-    def close(self):
-        """
-        释放GPIO资源.
-        """
+    def __del__(self):
         self.gpio.close()
 
 class Device():
@@ -72,7 +70,7 @@ class Device():
             "readme": "This is a door. It can be used to open and close the door.",
             "param": {
                 "present": {
-                    "status": "open"
+                    "status": "closed"
                 },
                 "selection": {
                     "status": ["__SELECT__", "open", "closed"],
@@ -82,19 +80,25 @@ class Device():
         self.action = False
         self.init_time = 0
         self.magnet = Electromagnet(226)
-        self.thread = threading.Thread(target=self.__run__)
-        self.thread.start()
+        self._thread = threading.Thread(target=self.__run__)
+        self._thread.start()
 
     def __run__(self):
-        data = self.data
-        while True:
-            if json.dumps(self.data["param"]["present"], sort_keys=True) != json.dumps(data["param"]["present"], sort_keys=True):
-                if self.data["param"]["present"]["status"] == "open":
-                    self.magnet.start(duration=15)
-                elif self.data["param"]["present"]["status"] == "closed":
-                    self.magnet.stop()
-                data = self.data
-            time.sleep(1)
+        data = copy.deepcopy(self.data)
+        try:
+            while True:
+                if json.dumps(self.data["param"]["present"], sort_keys=True) != json.dumps(data["param"]["present"], sort_keys=True):
+                    if self.data["param"]["present"]["status"] == "open":
+                        self.magnet.start(duration=15)
+                    elif self.data["param"]["present"]["status"] == "closed":
+                        self.magnet.stop()
+                    data = copy.deepcopy(self.data)
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self._thread.join()
+        finally:
+            self.magnet.stop()
+
 
 if __name__ == "__main__":
     # 假设 GPIO 芯片为 "/dev/gpiochip0"，引脚号为 226
@@ -108,4 +112,3 @@ if __name__ == "__main__":
         print("程序被中断。")
     finally:
         magnet.stop()
-        magnet.close()

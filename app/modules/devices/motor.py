@@ -1,5 +1,6 @@
 import time
 import json
+import copy
 import threading
 from periphery import GPIO
 
@@ -49,102 +50,94 @@ class StepperMotorHalfStep:
             steps_moved = 0
             # 计算目标步数（如果 rotations 大于0）
             target_steps = int(rotations * self.steps_per_revolution) if rotations > 0 else None
-            while self.running:
-                for step in step_seq:
-                    if not self.running:
-                        break
-                    # 写入每个 GPIO 引脚状态（确保传入 bool 类型）
-                    for gpio, state in zip(self.gpios, step):
-                        gpio.write(state == 1)
-                    time.sleep(delay)
-                    steps_moved += 1
-                    if target_steps is not None and steps_moved >= target_steps:
-                        self.running = False
-                        break
+            try:
+                while self.running:
+                    for step in step_seq:
+                        if not self.running:
+                            break
+                        # 写入每个 GPIO 引脚状态（确保传入 bool 类型）
+                        for gpio, state in zip(self.gpios, step):
+                            gpio.write(state == 1)
+                        time.sleep(delay)
+                        steps_moved += 1
+                        if target_steps is not None and steps_moved >= target_steps:
+                            self.running = False
+                            break
+            finally:
+                # 旋转结束后关闭所有 GPIO
+                self.cleanup_gpio()
 
         # 使用线程执行旋转，避免阻塞主程序
         self.thread = threading.Thread(target=run)
         self.thread.start()
 
     def stop(self):
-        """
-        停止电机转动，并关闭所有 GPIO 引脚
-        """
         self.running = False
         if self.thread is not None:
             self.thread.join()
-        # 关闭所有 GPIO 引脚并释放资源
+        self.cleanup_gpio()
+
+    def cleanup_gpio(self):
+        """关闭所有 GPIO 并释放资源"""
         for gpio in self.gpios:
             gpio.write(False)
-            gpio.close()
 
 class StepperMotorFullStep:
     def __init__(self, pins, gpiochip="/dev/gpiochip0", steps_per_revolution=2048):
-        """
-        初始化步进电机控制类（全步模式）
-        :param pins: 四个引脚编号的列表，例如 [70, 69, 72, 231]
-        :param gpiochip: GPIO 芯片路径，例如 "/dev/gpiochip0"
-        :param steps_per_revolution: 每转一圈所需的步数，默认2048步（适用于28BYJ-48全步模式，
-                                     如果你的电机参数不同，请相应调整）
-        """
         self.gpiochip = gpiochip
         self.pins = pins
         self.steps_per_revolution = steps_per_revolution
-        # 初始化 GPIO 对象
         self.gpios = [GPIO(gpiochip, pin, "out") for pin in pins]
-        # 全步模式（4步）——高扭矩模式：两个线圈同时通电
         self.step_sequence = [
             [1, 1, 0, 0],
             [0, 1, 1, 0],
             [0, 0, 1, 1],
             [1, 0, 0, 1]
         ]
-        # 定义转速挡位对应的延时（单位：秒）
         self.speed_levels = {0: 0.0025, 1: 0.002, 2: 0.0015}
         self.running = False
         self.thread = None
 
     def rotate(self, rotations=0, speed_level=0, direction="cw"):
-        """
-        开始旋转步进电机（全步模式）
-        :param rotations: 旋转圈数，传入0表示无限旋转（直到调用 stop()）
-        :param speed_level: 转速挡位，0: 最慢 (0.0025秒延时), 1: 中速 (0.002秒延时), 2: 快速 (0.0015秒延时)
-        :param direction: 旋转方向，"cw"为顺时针，"ccw"为逆时针
-        """
         delay = self.speed_levels.get(speed_level, 0.0025)
-        # 根据旋转方向选择正序或逆序的步进序列
         step_seq = self.step_sequence if direction == "cw" else self.step_sequence[::-1]
         self.running = True
 
         def run():
             steps_moved = 0
             target_steps = int(rotations * self.steps_per_revolution) if rotations > 0 else None
-            while self.running:
-                for step in step_seq:
-                    if not self.running:
-                        break
-                    # 写入每个 GPIO 引脚状态（转换为 bool 类型）
-                    for gpio, state in zip(self.gpios, step):
-                        gpio.write(state == 1)
-                    time.sleep(delay)
-                    steps_moved += 1
-                    if target_steps is not None and steps_moved >= target_steps:
-                        self.running = False
-                        break
+            try:
+                while self.running:
+                    for step in step_seq:
+                        if not self.running:
+                            break
+                        for gpio, state in zip(self.gpios, step):
+                            gpio.write(state == 1)
+                        time.sleep(delay)
+                        steps_moved += 1
+                        if target_steps is not None and steps_moved >= target_steps:
+                            self.running = False
+                            break
+            finally:
+                # 旋转结束后关闭所有 GPIO
+                self.cleanup_gpio()
 
-        # 使用线程执行旋转，防止阻塞主线程
         self.thread = threading.Thread(target=run)
         self.thread.start()
 
     def stop(self):
-        """
-        停止电机转动，并关闭所有 GPIO 引脚
-        """
         self.running = False
         if self.thread is not None:
             self.thread.join()
+        self.cleanup_gpio()
+
+    def cleanup_gpio(self):
+        """关闭所有 GPIO 并释放资源"""
         for gpio in self.gpios:
             gpio.write(False)
+
+    def __del__(self):
+        for gpio in self.gpios:
             gpio.close()
 
 class Device:
@@ -166,19 +159,24 @@ class Device:
         self.action = False
         self.init_time = 0
         self.motor = StepperMotorFullStep([70, 69, 72, 231])
-        self.thread = threading.Thread(target=self.__run__)
-        self.thread.start()
+        self._thread = threading.Thread(target=self.__run__)
+        self._thread.start()
 
     def __run__(self):
-        data = self.data
-        while True:
-            if json.dumps(self.data["param"]["present"], sort_keys=True) != json.dumps(data["param"]["present"], sort_keys=True):
-                if self.data["param"]["present"]["status"] == "open":
-                    self.motor.rotate(rotations=5, speed_level=2, direction="cw")
-                elif self.data["param"]["present"]["status"] == "closed":
-                    self.motor.rotate(rotations=5, speed_level=2, direction="ccw")
-                data = self.data
-            time.sleep(1)
+        data = copy.deepcopy(self.data)
+        try:
+            while True:
+                if json.dumps(self.data["param"]["present"], sort_keys=True) != json.dumps(data["param"]["present"], sort_keys=True):
+                    if self.data["param"]["present"]["status"] == "open":
+                        self.motor.stop()
+                        self.motor.rotate(rotations=5, speed_level=2, direction="cw")
+                    elif self.data["param"]["present"]["status"] == "closed":
+                        self.motor.stop()
+                        self.motor.rotate(rotations=5, speed_level=2, direction="ccw")
+                    data = copy.deepcopy(self.data)
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self._thread.join()
 
 
 
