@@ -5,41 +5,52 @@ from periphery import I2C
 
 debug_value = os.environ.get('DEBUG')
 
-debug_value = 'True'
-
 if debug_value == 'False' or debug_value is None:
     class SGP30:
-        def __init__(self):
-            self.addr = 0x58
-            self.i2c = I2C("/dev/i2c-0")
-            self.stat = False
+        INIT_COMMAND = [0x20, 0x03]
+        READ_COMMAND = [0x20, 0x08]
+        
+        def __init__(self, i2c_bus="/dev/i2c-0", addr=0x58):
+            self.addr = addr
+            self.i2c = I2C(i2c_bus)
+            self.init_done = threading.Event()
 
-            th = threading.Thread(target=self.__wait_init__)
+            self._send_init_command()
+            
+            self.init_thread = threading.Thread(target=self._wait_for_init, daemon=True)
+            self.init_thread.start()
 
-            msgs = [self.i2c.Message([0x20, 0x03])]
-            self.i2c.transfer(self.addr, msgs)
-            th.start()
+        def _send_init_command(self):
+            """发送初始化命令到 SGP30"""
+            try:
+                self.i2c.transfer(self.addr, [self.i2c.Message(self.INIT_COMMAND)])
+            except Exception as e:
+                print(f"SGP30 初始化失败: {e}")
 
-        def __wait_init__(self):
-            print("please wait 15s for sgp30 init")
+        def _wait_for_init(self):
+            """等待 15 秒后标记初始化完成"""
+            print("请等待 15 秒以完成 SGP30 初始化...")
             time.sleep(15)
-            self.stat = True
+            self.init_done.set()
 
         def read(self):
-            """
-            获取sgp30数据, 初始化至少15秒使用
-            返回co2, tvoc
-            :return: int, int
-            """
-            while not self.stat:
-                time.sleep(1)
-            msgs = [self.i2c.Message([0x20, 0x08])]
-            self.i2c.transfer(self.addr, msgs)
-            time.sleep(0.1)
-            msgs = [self.i2c.Message([0x00, 0x00, 0x00, 0x00], read=True)]
-            self.i2c.transfer(self.addr, msgs)
-            return int(msgs[0].data[0]) << 8 | int(msgs[0].data[1]), int(msgs[0].data[2]) << 8 | int(msgs[0].data[3])
-        
+            """获取 SGP30 传感器数据（CO2 和 TVOC），确保初始化完成"""
+            if not self.init_done.wait(timeout=16):
+                raise TimeoutError("SGP30 初始化超时")
+
+            try:
+                self.i2c.transfer(self.addr, [self.i2c.Message(self.READ_COMMAND)])
+                msgs = [self.i2c.Message([0x00, 0x00, 0x00, 0x00], read=True)]
+                self.i2c.transfer(self.addr, msgs)
+
+                co2 = (msgs[0].data[0] << 8) | msgs[0].data[1]
+                tvoc = (msgs[0].data[2] << 8) | msgs[0].data[3]
+                return co2, tvoc
+            except Exception as e:
+                print(f"读取 SGP30 数据失败: {e}")
+                return None, None
+
+
 class Device():
     def __init__(self):
         self.data = {
@@ -60,6 +71,7 @@ class Device():
                 }
             }
         }
+        self.uuid = "7031be97-7758-4eec-9f77-06a83112554f"
         self.action = False
         self.init_time = 15 if debug_value == 'False' or debug_value is None else 0
         if debug_value == 'False' or debug_value is None:

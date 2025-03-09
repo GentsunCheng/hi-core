@@ -21,6 +21,7 @@ class DeviceManager:
         }
         self.device_instances = {}
         self.init_time_dict = {}
+        self.uuid_dict = {}
         self.hi_ai = Hi_AI.HIAI_auto()
         self.cmd_json_data = {"action": "cmd", "devices": []}
         self._initialize_devices()
@@ -38,6 +39,7 @@ class DeviceManager:
             if device.init_time != 0:
                 self.init_time_dict[device.data["id"]] = device.init_time
             self.device_instances[device.data["id"]] = device
+            self.uuid_dict[device.data["id"]] = device.uuid
         self.hi_ai.set_data(json.dumps(self.all_json_data))
         if self.debug_value == 'True':
             print(json.dumps(self.all_json_data, indent=4))
@@ -111,7 +113,7 @@ def authenticate():
     # 从请求头中获取密钥，约定使用 'X-API-Key' 作为密钥字段
     api_key = request.headers.get('X-API-Key')
     if api_key != SECRET_API_KEY:
-        return jsonify({"error": "无效的 API 密钥"}), 401
+        return jsonify({"error": "Unlawful request"}), 401
 
 threading.Thread(target=run_manager, daemon=True).start()
 
@@ -121,12 +123,16 @@ def get_devices():
     # 直接返回 DeviceManager 实例中的 all_json_data 数据
     return jsonify(manager.all_json_data)
 
+@app.route('/api/devices/uuid', methods=['GET'])
+def get_uuid():
+    return jsonify(manager.uuid_dict)
+
 # 定义一个 POST 接口，用于下发控制命令
 @app.route('/api/control', methods=['POST'])
 def control_device():
     data = request.data.decode('utf-8')
     if not data:
-        return jsonify({"error": "无效的JSON数据"}), 400
+        return jsonify({"error": "Unsupport request"}), 400
     # cmd 函数接收的是 JSON 字符串，所以先将接收到的 JSON 数据转换为字符串再传入
     manager.cmd(data)
     return jsonify({"status": "OK"})

@@ -77,6 +77,7 @@ class Device():
                 }
             }
         }
+        self.uuid = "4f836a1a-eedd-4d93-8258-63b1fb74e610"
         self.action = False
         self.init_time = 0
         self.magnet = Electromagnet(226)
