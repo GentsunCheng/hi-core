@@ -73,7 +73,7 @@ class Device():
                     "status": "closed"
                 },
                 "selection": {
-                    "status": ["__SELECT__", "open", "closed"],
+                    "status": ["__SELECT__", "open"],
                 }
             }
         }
@@ -91,8 +91,6 @@ class Device():
                 if json.dumps(self.data["param"]["present"], sort_keys=True) != json.dumps(data["param"]["present"], sort_keys=True):
                     if self.data["param"]["present"]["status"] == "open":
                         self.magnet.start(duration=15)
-                    elif self.data["param"]["present"]["status"] == "closed":
-                        self.magnet.stop()
                     data = copy.deepcopy(self.data)
                 time.sleep(1)
         except KeyboardInterrupt:
