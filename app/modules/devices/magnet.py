@@ -1,6 +1,4 @@
 import time
-import json
-import copy
 import threading
 from periphery import GPIO
 
@@ -85,13 +83,18 @@ class Device():
         self._thread.start()
 
     def __run__(self):
-        data = copy.deepcopy(self.data)
+        run_time = 0
         try:
             while True:
-                if json.dumps(self.data["param"]["present"], sort_keys=True) != json.dumps(data["param"]["present"], sort_keys=True):
-                    if self.data["param"]["present"]["status"] == "open":
-                        self.magnet.start(duration=15)
-                    data = copy.deepcopy(self.data)
+                if self.data["param"]["present"]["status"] == "opened":
+                    run_time += 1
+                if run_time > 15:
+                    self.data["param"]["present"]["status"] = "closed"
+                if self.data["param"]["present"]["status"] == "open" and run_time <= 15:
+                    self.data["param"]["present"]["status"] = "opened"
+                    print("open door")
+                    self.magnet.start(duration=15)
+                    run_time = 0
                 time.sleep(1)
         except KeyboardInterrupt:
             self._thread.join()
