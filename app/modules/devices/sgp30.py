@@ -5,7 +5,9 @@ from periphery import I2C
 
 debug_value = os.environ.get('DEBUG')
 
-if debug_value == 'False' or debug_value is None:
+if debug_value == 'True':
+    import random
+else:
     class SGP30:
         INIT_COMMAND = [0x20, 0x03]
         READ_COMMAND = [0x20, 0x08]
@@ -91,7 +93,7 @@ class Device():
         while True:
             try:
                 if debug_value == 'True':
-                    co2, tvoc = 400, 0
+                    co2, tvoc = random.randint(380,500), random.randint(0,10)
                 else:
                     co2, tvoc = self.sgp30.read()
                 self.data["param"]["present"]["co2"]["content"] = co2

@@ -90,6 +90,7 @@ class Device():
                     run_time += 1
                 if run_time > 15:
                     self.data["param"]["present"]["status"] = "closed"
+                    run_time = 0
                 if self.data["param"]["present"]["status"] == "open" and run_time <= 15:
                     self.data["param"]["present"]["status"] = "opened"
                     print("open door")
