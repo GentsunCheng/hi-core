@@ -75,7 +75,7 @@ class DeviceManager:
                 if device.action and self.init_time_dict.get(device_id) is None:
                     self.cmd_json_data["devices"].append(device.data)
                     device.action = False
-            if self.debug_value == 'True':
+            if self.debug_value == 'True' and self.cmd_json_data["devices"]:
                 print(json.dumps(self.cmd_json_data, indent=4))
             if self.cmd_json_data["devices"]:
                 data = self.hi_ai.oprate(json.dumps(self.cmd_json_data))
