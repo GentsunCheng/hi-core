@@ -40,7 +40,7 @@
         "type": "virtual_out",
         "param": {
           "selection": {
-            "notification": "",
+            "notification": ""
           }
         }
       },
@@ -54,7 +54,7 @@
             "message": ""
           }
         }
-      }
+      },
       {
         "name": "天气信息",
         "id": 2,
