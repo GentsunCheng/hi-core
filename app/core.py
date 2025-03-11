@@ -12,7 +12,7 @@ class DeviceManager:
     def __init__(self):
         self.debug_value = os.environ.get('DEBUG')
         self.all_json_data = {
-            "action": "init",
+            "status": "init",
             "init_param": {
                 "Designation": "Madis",
                 "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
@@ -23,7 +23,7 @@ class DeviceManager:
         self.init_time_dict = {}
         self.uuid_dict = {}
         self.hi_ai = Hi_AI.HIAI_auto()
-        self.cmd_json_data = {"action": "cmd", "devices": []}
+        self.cmd_json_data = {"action": "trigger", "devices": []}
         self._initialize_devices()
         self._start_device_initialization()
 
