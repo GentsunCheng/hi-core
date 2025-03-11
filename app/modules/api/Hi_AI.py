@@ -1,5 +1,6 @@
 import os
 import json
+from markdown_it import MarkdownIt
 debug_value = os.environ.get('DEBUG')
 API_KEY = os.environ.get('API_KEY')
 
@@ -8,6 +9,7 @@ if debug_value == 'False' or debug_value is None:
 
 class HIAI_auto:
     def __init__(self, api_key=API_KEY, api_base="https://api.deepseek.com"):
+        self.md = MarkdownIt()
         if debug_value == 'False' or debug_value is None:
             self.client = OpenAI(api_key=api_key, base_url=api_base)
         module_dir = os.path.dirname(__file__)
@@ -38,15 +40,24 @@ class HIAI_auto:
                     }
                 ]
             }
-            content = json.dumps(data)
+            content_md = "```json\n" + json.dumps(data) + "\n```"
         else:
             completion  = self.client.chat.completions.create(
-                model="deepseek-reasoner",
+                model="deepseek-chat",
                 messages=self.messages,
                 stream=False,
             )
-            content = completion.choices[0].message.content
-        return content
+            content_md = completion.choices[0].message.content
+        parsed = self.md.parse(content_md)
+        code_blocks = []
+        for token in parsed:
+            if token.type == 'fence' and token.info == 'json':
+                code_blocks.append(token.content)
+        if code_blocks:
+            content = code_blocks[0].strip()
+            return content
+        else:
+            return '{"actions": []}'
 
 
 if __name__ == '__main__':
@@ -60,9 +71,9 @@ if __name__ == '__main__':
     "devices":
         [
             {
-                "name": "终端通知",
+                "name": "语音通知",
                 "id": 0,
-                "readme": "Non-physical device that transmits notifications, warnings, etc",
+                "readme": "Non-physical device that transmits notifications, warnings, etc.You need to convert units of measure to text",
                 "type": "virtual_out",
                 "param": {
                     "selection": {
@@ -199,7 +210,7 @@ if __name__ == '__main__':
             }
         ]
     }
-    optdata = {
+    optdata = [{
     "status": "trigger",
     "devices":
         [
@@ -216,9 +227,43 @@ if __name__ == '__main__':
                 }
             }
         ]
-    }
+    },
+    {
+        "status": "trigger",
+        "devices":
+        [
+            {
+                "name": "语音控制",
+                "id": 1,
+                "readme": "Non-physical device through which the user's voice will be entered",
+                "type": "virtual_in",
+                "param": {
+                    "present": {
+                        "message": "把客厅灯设置成米黄色"
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "status": "trigger",
+        "devices":
+        [
+            {
+                "name": "语音控制",
+                "id": 1,
+                "readme": "Non-physical device through which the user's voice will be entered",
+                "type": "virtual_in",
+                "param": {
+                    "present": {
+                        "message": "今天天气咋样"
+                    }
+                }
+            }
+        ]
+    }]
+
     HIAI.set_data(json.dumps(data))
-    content = HIAI.oprate(json.dumps(optdata))
-    print(content)
-
-
+    for opt in optdata:
+        content = HIAI.oprate(json.dumps(opt))
+        print(content)
