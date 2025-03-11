@@ -52,7 +52,7 @@ class HIAI_auto:
 if __name__ == '__main__':
     HIAI = HIAI_auto()
     data = {
-    "action": "init",
+    "status": "init",
     "init_param": {
         "designation": "Madis",
         "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
@@ -200,7 +200,7 @@ if __name__ == '__main__':
         ]
     }
     optdata = {
-    "action": "cmd",
+    "status": "trigger",
     "devices":
         [
             {
