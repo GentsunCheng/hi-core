@@ -26,7 +26,6 @@ class Device():
                 }
             }
         }
-        self.uuid = "850695f6-93e1-485b-b438-22efb90f04f2"
         self.action = False
         self.init_time = 0
         self.speechrec = SpeechRec()

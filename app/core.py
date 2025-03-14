@@ -39,7 +39,8 @@ class DeviceManager:
             if device.init_time != 0:
                 self.init_time_dict[device.data["id"]] = device.init_time
             self.device_instances[device.data["id"]] = device
-            self.uuid_dict[device.data["id"]] = device.uuid
+            if hasattr(device, "uuid"):
+                self.uuid_dict[device.data["id"]] = device.uuid
         self.hi_ai.set_data(json.dumps(self.all_json_data))
         if self.debug_value == 'True':
             print(json.dumps(self.all_json_data, indent=4))

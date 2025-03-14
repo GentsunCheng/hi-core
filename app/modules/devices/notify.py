@@ -31,7 +31,6 @@ class Device():
                 }
             }
         }
-        self.uuid = "3c51ef5f-b525-4413-ac35-02d1152f7e1a"
         self.action = False
         self.init_time = 0
         self.notify = Notify()
