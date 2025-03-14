@@ -1,14 +1,22 @@
 import os
 import json
+import toml
 from markdown_it import MarkdownIt
+
+
 debug_value = os.environ.get('DEBUG')
 API_KEY = os.environ.get('API_KEY')
 
 if debug_value == 'False' or debug_value is None:
     from openai import OpenAI
 
+
 class HIAI_auto:
     def __init__(self, api_key=API_KEY, api_base="https://api.deepseek.com"):
+        with open(os.getcwd() + "/source/config.toml", "r", encoding="utf-8") as f:
+            config = toml.load(f)
+            if config["openai"]["api_key"] != "":
+                api_key = config["openai"]["api_key"]
         self.md = MarkdownIt()
         if debug_value == 'False' or debug_value is None:
             self.client = OpenAI(api_key=api_key, base_url=api_base)
@@ -73,11 +81,14 @@ if __name__ == '__main__':
             {
                 "name": "语音通知",
                 "id": 0,
-                "readme": "Non-physical device that transmits notifications, warnings, etc.You need to convert units of measure to text",
+                "readme": "Non-physical device that transmits notifications, warnings, etc",
                 "type": "virtual_out",
                 "param": {
+                    "present": {
+                        "message": ""
+                    },
                     "selection": {
-                        "notification": ""
+                        "message": ""
                     }
                 }
             },
@@ -99,14 +110,14 @@ if __name__ == '__main__':
                 "type": "virtual_in",
                 "param": {
                     "present": {
-                        "status": "sunny",
+                        "skycon": "sunny",
                         "temp": {
-                        "outdoor": 33,
-                        "ambient":30
+                            "outdoor": 33,
+                            "apparent":30
                         }
                     },
                     "humidity": 0.83,
-                    "wind_velocity" : "2km"
+                    "wind_speed" : "2km"
                     }
                 },
                 {

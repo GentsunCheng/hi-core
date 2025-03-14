@@ -170,3 +170,4 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 config.toml
+source/GeoLite2-City.mmdb
