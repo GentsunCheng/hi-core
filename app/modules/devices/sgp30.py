@@ -1,7 +1,7 @@
 import os
 import time
 import threading
-from periphery import I2C
+import smbus2
 
 debug_value = os.environ.get('DEBUG')
 
@@ -9,44 +9,27 @@ if debug_value == 'True':
     import random
 else:
     class SGP30:
-        INIT_COMMAND = [0x20, 0x03]
-        READ_COMMAND = [0x20, 0x08]
-        
-        def __init__(self, i2c_bus="/dev/i2c-0", addr=0x58):
+        def __init__(self, i2c_bus=3, addr=0x58):
             self.addr = addr
-            self.i2c = I2C(i2c_bus)
+            self.i2c = smbus2.SMBus(i2c_bus)  # 使用 smbus2 库来创建 I2C 对象
             self.init_done = threading.Event()
-
-            self._send_init_command()
-            
-            self.init_thread = threading.Thread(target=self._wait_for_init, daemon=True)
-            self.init_thread.start()
-
-        def _send_init_command(self):
-            """发送初始化命令到 SGP30"""
-            try:
-                self.i2c.transfer(self.addr, [self.i2c.Message(self.INIT_COMMAND)])
-            except Exception as e:
-                print(f"SGP30 初始化失败: {e}")
-
-        def _wait_for_init(self):
-            """等待 15 秒后标记初始化完成"""
-            print("请等待 15 秒以完成 SGP30 初始化...")
-            time.sleep(15)
-            self.init_done.set()
+            self.init_command = [0x20, 0x03]  # 初始化命令
+            self.read_command = [0x20, 0x08]  # 读取 CO2 和 TVOC 数据的命令
+            self.i2c.write_i2c_block_data(self.addr, self.init_command[0], self.init_command[1:])
 
         def read(self):
-            """获取 SGP30 传感器数据（CO2 和 TVOC），确保初始化完成"""
-            if not self.init_done.wait(timeout=16):
-                raise TimeoutError("SGP30 初始化超时")
-
             try:
-                self.i2c.transfer(self.addr, [self.i2c.Message(self.READ_COMMAND)])
-                msgs = [self.i2c.Message([0x00, 0x00, 0x00, 0x00], read=True)]
-                self.i2c.transfer(self.addr, msgs)
+                # 发送读取数据命令
+                self.i2c.write_i2c_block_data(self.addr, self.read_command[0], self.read_command[1:])
+                time.sleep(0.1)  # 等待数据准备
 
-                co2 = (msgs[0].data[0] << 8) | msgs[0].data[1]
-                tvoc = (msgs[0].data[2] << 8) | msgs[0].data[3]
+                # 读取 6 字节的数据
+                data = self.i2c.read_i2c_block_data(self.addr, 0x00, 6)
+
+                # 解析 CO2 和 TVOC 数据
+                co2 = (data[0] << 8) | data[1]  # CO2 数据
+                tvoc = (data[3] << 8) | data[4]  # TVOC 数据
+
                 return co2, tvoc
             except Exception as e:
                 print(f"读取 SGP30 数据失败: {e}")
@@ -78,11 +61,11 @@ class Device():
         self.init_time = 15 if debug_value == 'False' or debug_value is None else 0
         if debug_value == 'False' or debug_value is None:
             self.sgp30 = SGP30()
-        self.thread = threading.Thread(target=self.__read__)
+        self.thread = threading.Thread(target=self.__run__)
         self.thread.start()
         
 
-    def __read__(self):
+    def __run__(self):
         # 初始化记录上一次状态及上次触发报警时间
         # 这里定义状态分为三档："normal" 正常，"abnormal1" 异常一级，"abnormal2" 异常二级
         prev_co2_level = "normal"
@@ -99,6 +82,10 @@ class Device():
                 self.data["param"]["present"]["co2"]["content"] = co2
                 self.data["param"]["present"]["tvoc"]["content"] = tvoc
                 current_time = time.time()
+
+                if co2 is None or tvoc is None:
+                    time.sleep(1)
+                    continue
 
                 # 根据预设阈值判断 CO2 状态（可根据实际情况调整）
                 if co2 < 1000:

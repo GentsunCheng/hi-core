@@ -2,11 +2,15 @@ import os
 import time
 import json
 import threading
+import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from modules.api import Hi_AI
 from modules.devices import device_classes
 
 from flask import Flask, request, jsonify
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 class DeviceManager:
     def __init__(self):
@@ -80,16 +84,15 @@ class DeviceManager:
                 print(json.dumps(self.cmd_json_data, indent=4))
             if self.cmd_json_data["devices"]:
                 data = self.hi_ai.oprate(json.dumps(self.cmd_json_data))
-                try:
-                    response = json.loads(data)
-                except json.JSONDecodeError:
-                    print("无法解析JSON数据")
-                    continue
-                if "actions" in response:
-                    self.cmd(response)
+                self.cmd(data)
+                logging.info(data)
 
     def cmd(self, data):
-        data_decode = json.loads(data)
+        try:
+            data_decode = json.loads(data)
+        except json.JSONDecodeError:
+            logging.error("无法解析 JSON 数据")
+            return
         for item in data_decode["actions"]:
             if self.device_instances[item["id"]]:
                 self.device_instances[item["id"]].data["param"]["present"] = item["param"]
