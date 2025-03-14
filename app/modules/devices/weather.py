@@ -14,7 +14,6 @@ class Weather():
             config = toml.load(f)
             if config["weather"]["api_key"] != "":
                 self.api_key = config["weather"]["api_key"]
-        self.api_key = api_key
         self.api_base = api_base
         self.version = "v2.6"
         self.location = self.__get_location__()
@@ -41,9 +40,9 @@ class Weather():
         if response.status_code == 200:
             data = response.json()["result"]["realtime"]
             skycon = data["skycon"]
-            temp = data["temperature"] + "°C"
-            apparent_temp = data["apparent_temperature"] + "°C"
-            humidity = data["humidity"] + "%"
+            temp = str(data["temperature"]) + "°C"
+            apparent_temp = str(data["apparent_temperature"]) + "°C"
+            humidity = str(data["humidity"]) + "%"
             wind_speed = str(data["wind"]["speed"]) + "km/h"
             return skycon, temp, apparent_temp, humidity, wind_speed
         else:
