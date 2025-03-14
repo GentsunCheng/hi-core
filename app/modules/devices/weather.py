@@ -41,10 +41,10 @@ class Weather():
         if response.status_code == 200:
             data = response.json()["result"]["realtime"]
             skycon = data["skycon"]
-            temp = data["temperature"]
-            apparent_temp = data["apparent_temperature"]
-            humidity = data["humidity"]
-            wind_speed = str(data["wind"]["speed"]) + "km"
+            temp = data["temperature"] + "°C"
+            apparent_temp = data["apparent_temperature"] + "°C"
+            humidity = data["humidity"] + "%"
+            wind_speed = str(data["wind"]["speed"]) + "km/h"
             return skycon, temp, apparent_temp, humidity, wind_speed
         else:
             return None
@@ -61,11 +61,11 @@ class Device():
                 "present": {
                     "skycon": "UNKNOWN",
                     "temp": {
-                        "outdoor": 27,
-                        "apparent":27
+                        "outdoor": "27°C",
+                        "apparent":"27°C"
                     },
-                    "humidity": 0.75,
-                    "wind_speed" : "0km"
+                    "humidity": "0.75%",
+                    "wind_speed" : "0km/h"
                 }
             }
         }
