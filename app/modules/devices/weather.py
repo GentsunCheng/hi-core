@@ -59,14 +59,14 @@ class Device():
             "readme": "Non-physical device with internet access to current weather",
             "param": {
                 "present": {
-                    "skycon": "",
+                    "skycon": "UNKNOWN",
                     "temp": {
                         "outdoor": 27,
                         "apparent":27
-                    }
-                },
-                "humidity": 0.75,
-                "wind_speed" : "0km"
+                    },
+                    "humidity": 0.75,
+                    "wind_speed" : "0km"
+                }
             }
         }
         self.uuid = "2c03700e-4765-4173-ba91-014baa55013e"
@@ -86,8 +86,8 @@ class Device():
         self.data["param"]["present"]["skycon"] = data[0]
         self.data["param"]["present"]["temp"]["outdoor"] = data[1]
         self.data["param"]["present"]["temp"]["apparent"] = data[2]
-        self.data["param"]["humidity"] = data[3]
-        self.data["param"]["wind_speed"] = data[4]
+        self.data["param"]["present"]["humidity"] = data[3]
+        self.data["param"]["present"]["wind_speed"] = data[4]
 
     def __run__(self):
         while True:
