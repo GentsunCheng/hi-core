@@ -157,7 +157,7 @@ class Device:
             }
         }
         self.uuid = "c3cdd2f0-e9e2-4853-8baf-a99a5fefaabc"
-        self.action = False
+        self.trigger = False
         self.init_time = 0
         self.motor = StepperMotorFullStep([70, 69, 72, 79])
         self._thread = threading.Thread(target=self.__run__)

@@ -42,7 +42,7 @@ class Weather():
             skycon = data["skycon"]
             temp = str(data["temperature"]) + "°C"
             apparent_temp = str(data["apparent_temperature"]) + "°C"
-            humidity = str(data["humidity"]) + "%"
+            humidity = str(int(data["humidity"] * 100)) + "%"
             wind_speed = str(data["wind"]["speed"]) + "km/h"
             return skycon, temp, apparent_temp, humidity, wind_speed
         else:
@@ -69,7 +69,7 @@ class Device():
             }
         }
         self.uuid = "2c03700e-4765-4173-ba91-014baa55013e"
-        self.action = False
+        self.trigger = False
         self.init_time = 0
         self.weather = Weather()
         self.__get_weather__()
@@ -96,7 +96,7 @@ class Device():
                     return
                 time.sleep(1)
             self.__get_weather__()
-            self.action = True
+            self.trigger = True
             
 
 

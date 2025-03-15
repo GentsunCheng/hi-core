@@ -77,9 +77,9 @@ class DeviceManager:
             time.sleep(1)
             self.cmd_json_data["devices"] = []
             for device_id, device in self.device_instances.items():
-                if device.action and self.init_time_dict.get(device_id) is None:
+                if device.trigger and self.init_time_dict.get(device_id) is None:
                     self.cmd_json_data["devices"].append(device.data)
-                    device.action = False
+                    device.trigger = False
             if self.debug_value == 'True' and self.cmd_json_data["devices"]:
                 print(json.dumps(self.cmd_json_data, indent=4))
             if self.cmd_json_data["devices"]:

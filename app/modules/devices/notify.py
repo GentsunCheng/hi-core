@@ -31,7 +31,7 @@ class Device():
                 }
             }
         }
-        self.action = False
+        self.trigger = False
         self.init_time = 0
         self.notify = Notify()
         self._thread = threading.Thread(target=self.__run__)

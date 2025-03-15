@@ -93,18 +93,18 @@ class Device():
                         "measure": "lx"
                     },
                     "temperature": {
-                        "content": 0,
+                        "content": 25,
                         "measure": "°C"
                     },
                     "humidity": {
-                        "content": 0,
+                        "content": 70,
                         "measure": "%"
                     }
                 }
             }
         }
         self.uuid = "7031be97-7758-4eec-9f77-06a83112554f"
-        self.action = False
+        self.trigger = False
         self.init_time = 15 if debug_value == 'False' or debug_value is None else 0
         if debug_value == 'False' or debug_value is None:
             self.multi_sensor = Multi_Sensor()
@@ -124,32 +124,22 @@ class Device():
         last_trigger_time_temperature = time.time()
         last_trigger_time_humidity = time.time()
 
-        comfortable_temps = {"comfortable", "cool", "cold"}
-
         while True:
             try:
                 if debug_value == 'True':
-                    co2, tvoc = random.randint(380,500), random.randint(0,10)
+                    co2, tvoc = random.randint(380,450), random.randint(0,10)
                     light = random.randint(0,1000)
-                    temperature, humidity = random.randint(0,50), random.randint(0,100)
+                    temperature, humidity = random.randint(25,28), random.randint(60,70)
                 else:
-                    time.sleep(1)
                     co2, tvoc = self.multi_sensor.sgp30_read()
-                    time.sleep(1)
                     light = self.multi_sensor.bh1750_read()
-                    time.sleep(1)
                     temperature, humidity = self.multi_sensor.aht10_read()
-                    time.sleep(1)
-                self.data["param"]["present"]["co2"]["content"] = co2
-                self.data["param"]["present"]["tvoc"]["content"] = tvoc
-                self.data["param"]["present"]["light"]["content"] = light
-                self.data["param"]["present"]["temperature"]["content"] = temperature
-                self.data["param"]["present"]["humidity"]["content"] = humidity
+                self.data["param"]["present"]["co2"]["content"] = co2 if co2 is not None else 0
+                self.data["param"]["present"]["tvoc"]["content"] = tvoc if tvoc is not None else 0
+                self.data["param"]["present"]["light"]["content"] = light if light is not None else 0
+                self.data["param"]["present"]["temperature"]["content"] = temperature if temperature is not None else 25
+                self.data["param"]["present"]["humidity"]["content"] = humidity if humidity is not None else 70
                 current_time = time.time()
-
-                if co2 is None or tvoc is None:
-                    time.sleep(1)
-                    continue
 
                 # 根据预设阈值判断 CO2 状态（可根据实际情况调整）
                 if co2 < 1000:
@@ -170,12 +160,8 @@ class Device():
                 # 根据预设阈值判断 Temperature 状态（可根据实际情况调整）
                 if temperature < 18:
                     current_temperature_level = "cold" 
-                elif 18 <= temperature < 23:
-                    current_temperature_level = "cool"
-                elif 23 <= temperature < 27:
-                    current_temperature_level = "comfortable"
-                elif 27 <= temperature < 30:
-                    current_temperature_level = "warm"
+                elif 18 <= temperature < 30:
+                    current_temperature_level = "normal"
                 else:
                     current_temperature_level = "hot"
 
@@ -190,42 +176,42 @@ class Device():
                 # ----- CO2 逻辑 -----
                 # 情况1：从正常进入异常
                 if prev_co2_level == "normal" and current_co2_level != "normal":
-                    self.action = True
+                    self.trigger = True
                     last_trigger_time_co2 = current_time
                 # 情况2：在异常状态下进一步升高一级（例如从 abnormal1 升至 abnormal2）
                 elif prev_co2_level == "abnormal1" and current_co2_level == "abnormal2":
-                    self.action = True
+                    self.trigger = True
                     last_trigger_time_co2 = current_time
                 # 情况3：持续异常，每隔一分钟触发一次
                 elif current_co2_level != "normal" and (current_time - last_trigger_time_co2 >= 60):
-                    self.action = True
+                    self.trigger = True
                     last_trigger_time_co2 = current_time
 
                 # ----- TVOC 逻辑 -----
                 if prev_tvoc_level == "normal" and current_tvoc_level != "normal":
-                    self.action = True
+                    self.trigger = True
                     last_trigger_time_tvoc = current_time
                 elif prev_tvoc_level == "abnormal1" and current_tvoc_level == "abnormal2":
-                    self.action = True
+                    self.trigger = True
                     last_trigger_time_tvoc = current_time
                 elif current_tvoc_level != "normal" and (current_time - last_trigger_time_tvoc >= 60):
-                    self.action = True
+                    self.trigger = True
                     last_trigger_time_tvoc = current_time
 
-                # ----- Temperature 逻辑 -----
-                if (prev_temperature_level in comfortable_temps and current_temperature_level not in comfortable_temps):
-                    self.action = True
+                # ----- Temperature 逻辑 ----
+                if prev_temperature_level == "normal" and current_temperature_level != "normal":
+                    self.trigger = True
                     last_trigger_time_temperature = current_time
-                elif current_temperature_level not in comfortable_temps and (current_time - last_trigger_time_temperature >= 60):
-                    self.action = True
+                elif current_temperature_level != "normal" and (current_time - last_trigger_time_temperature >= 60):
+                    self.trigger = True
                     last_trigger_time_temperature = current_time
 
                 # ----- Humidity 逻辑 -----
                 if prev_humidity_level == "normal" and current_humidity_level != "normal":
-                    self.action = True
+                    self.trigger = True
                     last_trigger_time_humidity = current_time
                 elif current_humidity_level != "normal" and (current_time - last_trigger_time_humidity >= 60):
-                    self.action = True
+                    self.trigger = True
                     last_trigger_time_humidity = current_time
 
                 # 更新上一次的状态
@@ -234,6 +220,7 @@ class Device():
                 prev_temperature_level = current_temperature_level
                 prev_humidity_level = current_humidity_level
 
+                time.sleep(1)
             except KeyboardInterrupt:
                 break
 
