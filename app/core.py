@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import toml
 import threading
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -11,6 +12,22 @@ from flask import Flask, request, jsonify
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
+
+with open(os.getcwd() + "/source/config.toml", "r", encoding="utf-8") as f:
+            config = toml.load(f)
+            https = False
+            if config["http"]["host"] != "":
+                host = config["http"]["host"]
+            if config["http"]["port"] != "":
+                port = int(config["http"]["port"])
+            if config["http"]["https"]:
+                cert = os.getcwd() + "/source/fullchain.pem"
+                key = os.getcwd() + "/source/privkey.pem"
+                if os.path.exists(cert) and os.path.exists(key):
+                    https = True
+                
+
+app = Flask(__name__)
 
 class DeviceManager:
     def __init__(self):
@@ -142,4 +159,8 @@ def control_device():
     return jsonify({"status": "OK"})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    if https:
+        app.run(host=host, port=port, ssl_context=(cert, key))
+    else:
+        app.run(host=host, port=port)
+        

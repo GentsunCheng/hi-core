@@ -16,7 +16,7 @@ class Weather():
                 self.api_key = config["weather"]["api_key"]
         self.api_base = api_base
         self.version = "v2.6"
-        self.location = self.__get_location__()
+        self.location, self.city = self.__get_location__()
         
 
     def __get_location__(self):
@@ -33,7 +33,7 @@ class Weather():
         reader = geoip2.database.Reader(filename)
         response = reader.city(ip)
         reader.close()
-        return str(response.location.longitude) + "," + str(response.location.latitude)
+        return str(response.location.longitude) + "," + str(response.location.latitude), response.city.name
 
     def get_weather_info(self):
         response = requests.get(f"{self.api_base}/{self.version}/{self.api_key}/{self.location}/realtime")
@@ -47,6 +47,9 @@ class Weather():
             return skycon, temp, apparent_temp, humidity, wind_speed
         else:
             return None
+        
+    def get_city(self):
+        return self.city
 
 
 class Device():
@@ -58,6 +61,7 @@ class Device():
             "readme": "Non-physical device with internet access to current weather",
             "param": {
                 "present": {
+                    "city": "",
                     "skycon": "UNKNOWN",
                     "temp": {
                         "outdoor": "27°C",
@@ -73,6 +77,7 @@ class Device():
         self.init_time = 0
         self.weather = Weather()
         self.__get_weather__()
+        self.data["param"]["present"]["city"] = self.weather.get_city()
         self.duration = 1.5
         self._thread = threading.Thread(target=self.__run__)
         self._stop_event = threading.Event()

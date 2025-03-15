@@ -3,3 +3,8 @@ api_key=""
 
 [weather]
 api_key=""
+
+[http]
+host="0.0.0.0"
+port=5000
+https=false
