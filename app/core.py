@@ -34,9 +34,14 @@ class DeviceManager:
         self.debug_value = os.environ.get('DEBUG')
         self.all_json_data = {
             "status": "init",
-            "init_param": {
-                "Designation": "Madis",
-                "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
+            "init_params": {
+                "sys_conf": {
+                "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+                },
+                "custom_setting": {
+                    "Designation": "Madis",
+                    "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
+                }
             },
             "devices": []
         }
@@ -100,6 +105,8 @@ class DeviceManager:
             if self.debug_value == 'True' and self.cmd_json_data["devices"]:
                 print(json.dumps(self.cmd_json_data, indent=4))
             if self.cmd_json_data["devices"]:
+                self.all_json_data["init_params"]["time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                self.hi_ai.set_data(json.dumps(self.all_json_data))
                 data = self.hi_ai.oprate(json.dumps(self.cmd_json_data))
                 self.cmd(data)
                 logging.info(data)

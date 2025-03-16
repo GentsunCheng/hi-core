@@ -69,19 +69,25 @@ class HIAI_auto:
 
 
 if __name__ == '__main__':
+    import time
     HIAI = HIAI_auto()
     data = {
     "status": "init",
-    "init_param": {
-        "designation": "Madis",
-        "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
+    "init_params": {
+        "sys_conf": {
+        "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+        },
+        "custom_setting": {
+            "Designation": "Madis",
+            "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
+        }
     },
     "devices":
         [
             {
                 "name": "语音通知",
                 "id": 0,
-                "readme": "Non-physical device that transmits notifications, warnings, etc",
+                "readme": "Non-physical devices that transmit voice notifications, warnings, and other information. Note that you need to convert the units of measure to text.",
                 "type": "virtual_out",
                 "param": {
                     "present": {
@@ -221,58 +227,60 @@ if __name__ == '__main__':
             }
         ]
     }
-    optdata = [{
-    "status": "trigger",
-    "devices":
-        [
-            {
-                "name": "二氧化碳传感器",
-                "id": 7,
-                "readme": "This device is a carbon dioxide sensor to view carbon dioxide concentration",
-                "type": "sensor",
-                "param": {
-                    "present": {
-                        "content": 700,
-                        "measure": "ppm"
+    optdata = [
+        {
+            "status": "trigger",
+            "devices":
+            [
+                {
+                    "name": "二氧化碳传感器",
+                    "id": 7,
+                    "readme": "This device is a carbon dioxide sensor to view carbon dioxide concentration",
+                    "type": "sensor",
+                    "param": {
+                        "present": {
+                            "content": 700,
+                            "measure": "ppm"
+                        }
                     }
                 }
-            }
-        ]
-    },
-    {
-        "status": "trigger",
-        "devices":
-        [
-            {
-                "name": "语音控制",
-                "id": 1,
-                "readme": "Non-physical device through which the user's voice will be entered",
-                "type": "virtual_in",
-                "param": {
-                    "present": {
-                        "message": "把客厅灯设置成米黄色"
+            ]
+        },
+        {
+            "status": "trigger",
+            "devices":
+            [
+                {
+                    "name": "语音控制",
+                    "id": 1,
+                    "readme": "Non-physical device through which the user's voice will be entered",
+                    "type": "virtual_in",
+                    "param": {
+                        "present": {
+                            "message": "把客厅灯设置成米黄色"
+                        }
                     }
                 }
-            }
-        ]
-    },
-    {
-        "status": "trigger",
-        "devices":
-        [
-            {
-                "name": "语音控制",
-                "id": 1,
-                "readme": "Non-physical device through which the user's voice will be entered",
-                "type": "virtual_in",
-                "param": {
-                    "present": {
-                        "message": "今天天气咋样"
+            ]
+        },
+        {
+            "status": "trigger",
+            "devices":
+            [
+                {
+                    "name": "语音控制",
+                    "id": 1,
+                    "readme": "Non-physical device through which the user's voice will be entered",
+                    "type": "virtual_in",
+                    "param": {
+                        "present": {
+                            "message": "今天天气咋样"
+                        }
                     }
                 }
-            }
-        ]
-    }]
+            ]
+        }
+    ]
 
     HIAI.set_data(json.dumps(data))
     for opt in optdata:
