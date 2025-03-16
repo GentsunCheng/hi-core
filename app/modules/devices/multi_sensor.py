@@ -10,22 +10,22 @@ if debug_value == 'True':
 else:
     class Multi_Sensor:
         def __init__(self, i2c_bus=3):
-            self.i2c = smbus2.SMBus(i2c_bus)  # 使用 smbus2 库来创建 I2C 对象
-            self.sgp30_addr = 0x58
-            self.bh1750_addr = 0x23
-            self.aht10_addr = 0x38
-            self.bh1750_one_time_high_res_mode = 0x20
-            self.sgp30_init_command = [0x20, 0x03]  # 初始化命令
-            self.sgp30_read_command = [0x20, 0x08]  # 读取 CO2 和 TVOC 数据的命令
-            self.i2c.write_i2c_block_data(self.addr, self.sgp30_init_command[0], self.sgp30_init_command[1:])
+            self._i2c = smbus2.SMBus(i2c_bus)  # 使用 smbus2 库来创建 I2C 对象
+            self._sgp30_addr = 0x58
+            self._bh1750_addr = 0x23
+            self._aht10_addr = 0x38
+            self._bh1750_one_time_high_res_mode = 0x20
+            self._sgp30_init_command = [0x20, 0x03]  # 初始化命令
+            self._sgp30_read_command = [0x20, 0x08]  # 读取 CO2 和 TVOC 数据的命令
+            self._i2c.write_i2c_block_data(self._sgp30_addr, self._sgp30_init_command[0], self._sgp30_init_command[1:])
 
         def bh1750_read(self):
             try:
                 # 发送读取数据命令
-                self.i2c.write_byte(self.bh1750_addr, self.bh1750_one_time_high_res_mode)
+                self._i2c.write_byte(self._bh1750_addr, self._bh1750_one_time_high_res_mode)
                 time.sleep(0.2)  # 等待数据准备
                 # 读取 2 字节的数据
-                data = self.i2c.read_i2c_block_data(self.bh1750_addr, 0x00, 2)
+                data = self._i2c.read_i2c_block_data(self._bh1750_addr, 0x00, 2)
                 # 解析光照度数据
                 light = (data[0] << 8) | data[1]
                 light /= 1.2
@@ -37,11 +37,11 @@ else:
         def aht10_read(self):
             try:
                 # 发送读取数据命令
-                self.i2c.write_i2c_block_data(self.aht10_addr, 0xAC, [0x33, 0x00])
+                self._i2c.write_i2c_block_data(self._aht10_addr, 0xAC, [0x33, 0x00])
                 time.sleep(0.1)  # 等待数据准备
 
                 # 读取 6 字节的数据
-                data = self.i2c.read_i2c_block_data(self.aht10_addr, 0x00, 6)
+                data = self._i2c.read_i2c_block_data(self._aht10_addr, 0x00, 6)
 
                 # 解析温度和湿度数据
                 temperature = (((data[3] & 0x0F) << 16) | (data[4] << 8) | data[5]) * 200.0 / 1048576.0 - 50
@@ -55,11 +55,11 @@ else:
         def sgp30_read(self):
             try:
                 # 发送读取数据命令
-                self.i2c.write_i2c_block_data(self.sgp30_addr, self.sgp30_read_command[0], self.sgp30_read_command[1:])
+                self._i2c.write_i2c_block_data(self._sgp30_addr, self._sgp30_read_command[0], self._sgp30_read_command[1:])
                 time.sleep(0.1)  # 等待数据准备
 
                 # 读取 6 字节的数据
-                data = self.i2c.read_i2c_block_data(self.sgp30_addr, 0x00, 6)
+                data = self._i2c.read_i2c_block_data(self._sgp30_addr, 0x00, 6)
 
                 # 解析 CO2 和 TVOC 数据
                 co2 = (data[0] << 8) | data[1]  # CO2 数据
@@ -105,11 +105,11 @@ class Device():
         }
         self.uuid = "7031be97-7758-4eec-9f77-06a83112554f"
         self.trigger = False
-        self.init_time = 15 if debug_value == 'False' or debug_value is None else 0
+        self.init_time = 0
         if debug_value == 'False' or debug_value is None:
-            self.multi_sensor = Multi_Sensor()
-        self.thread = threading.Thread(target=self.__run__, daemon=True)
-        self.thread.start()
+            self._multi_sensor = Multi_Sensor()
+        self._thread = threading.Thread(target=self.__run__, daemon=True)
+        self._thread.start()
         
 
     def __run__(self):
@@ -131,9 +131,9 @@ class Device():
                     light = random.randint(0,1000)
                     temperature, humidity = random.randint(25,28), random.randint(60,70)
                 else:
-                    co2, tvoc = self.multi_sensor.sgp30_read()
-                    light = self.multi_sensor.bh1750_read()
-                    temperature, humidity = self.multi_sensor.aht10_read()
+                    co2, tvoc = self._multi_sensor.sgp30_read()
+                    light = self._multi_sensor.bh1750_read()
+                    temperature, humidity = self._multi_sensor.aht10_read()
                 self.data["param"]["present"]["co2"]["content"] = co2 if co2 is not None else 0
                 self.data["param"]["present"]["tvoc"]["content"] = tvoc if tvoc is not None else 0
                 self.data["param"]["present"]["light"]["content"] = light if light is not None else 0
