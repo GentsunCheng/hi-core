@@ -35,14 +35,9 @@ class DeviceManager:
         self.debug_value = os.environ.get('DEBUG')
         self.all_json_data = {
             "status": "init",
-            "init_params": {
-                "sys_conf": {
-                "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-                },
-                "custom_setting": {
-                    "Designation": "Madis",
-                    "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
-                }
+            "init_param": {
+                "Designation": "Madis",
+                "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
             },
             "devices": []
         }
@@ -181,10 +176,8 @@ class DeviceManager:
                 if device.trigger and self.init_time_dict.get(device_id) is None:
                     self.cmd_json_data["devices"].append(device.data)
                     device.trigger = False
-            logging.info(json.dumps(self.cmd_json_data, indent=4))
             if self.cmd_json_data["devices"]:
-                self.all_json_data["init_params"]["time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                self.hi_ai.set_data(json.dumps(self.all_json_data))
+                logging.info(json.dumps(self.cmd_json_data, indent=4))
                 data = self.hi_ai.oprate(json.dumps(self.cmd_json_data))
                 self.cmd(data)
                 logging.info(data)
@@ -192,6 +185,7 @@ class DeviceManager:
     def cmd(self, data):
         try:
             data_decode = json.loads(data)
+            logging.info(data_decode)
         except json.JSONDecodeError:
             logging.error("无法解析 JSON 数据")
             return

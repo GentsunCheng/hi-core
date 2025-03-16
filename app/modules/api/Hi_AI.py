@@ -17,23 +17,23 @@ class HIAI_auto:
             config = toml.load(f)
             if config["openai"]["api_key"] != "":
                 api_key = config["openai"]["api_key"]
-        self.md = MarkdownIt()
+        self._md = MarkdownIt()
         if debug_value == 'False' or debug_value is None:
-            self.client = OpenAI(api_key=api_key, base_url=api_base)
+            self._client = OpenAI(api_key=api_key, base_url=api_base)
         module_dir = os.path.dirname(__file__)
         tips_path = os.path.join(module_dir, "tips.md")
         with open(tips_path, "r", encoding="utf-8") as f:
-            self.tips = f.read()
-        self.messages = [{"role": "system", "content": self.tips}]
-        self.data = {}
-        self.messages.append({"role": "user", "content": self.data})
+            self._tips = f.read()
+        self._messages = [{"role": "system", "content": self._tips}]
+        self._data = {}
+        self._messages.append({"role": "user", "content": self._data})
 
     def set_data(self, data):
-        self.data = data
-        self.messages[1]["content"] = self.data
+        self._data = data
+        self._messages[1]["content"] = self._data
 
     def oprate(self, data):
-        messages = self.messages
+        messages = self._messages
         messages.append({"role": "user", "content": data})
         if debug_value == 'True':
             data = {
@@ -50,13 +50,13 @@ class HIAI_auto:
             }
             content_md = "```json\n" + json.dumps(data) + "\n```"
         else:
-            completion  = self.client.chat.completions.create(
+            completion  = self._client.chat.completions.create(
                 model="deepseek-chat",
-                messages=self.messages,
+                messages=self._messages,
                 stream=False,
             )
             content_md = completion.choices[0].message.content
-        parsed = self.md.parse(content_md)
+        parsed = self._md.parse(content_md)
         code_blocks = []
         for token in parsed:
             if token.type == 'fence' and token.info == 'json':
