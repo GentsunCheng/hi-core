@@ -73,14 +73,9 @@ if __name__ == '__main__':
     HIAI = HIAI_auto()
     data = {
     "status": "init",
-    "init_params": {
-        "sys_conf": {
-        "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-        },
-        "custom_setting": {
-            "Designation": "Madis",
-            "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
-        }
+    "init_param": {
+        "Designation": "Madis",
+        "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
     },
     "devices":
         [
