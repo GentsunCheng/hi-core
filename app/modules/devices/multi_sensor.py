@@ -29,7 +29,7 @@ else:
                 # 解析光照度数据
                 light = (data[0] << 8) | data[1]
                 light /= 1.2
-                return light
+                return "{:.2f}".format(light)
             except Exception as e:
                 print(f"读取 BH1750 数据失败: {e}")
                 return None
@@ -47,7 +47,7 @@ else:
                 temperature = (((data[3] & 0x0F) << 16) | (data[4] << 8) | data[5]) * 200.0 / 1048576.0 - 50
                 humidity = ((data[1] << 12) | (data[2] << 4) | (data[3] >> 4)) * 100.0 / 1048576.0
 
-                return temperature, humidity
+                return "{:.2f}".format(temperature), "{:.2f}".format(humidity)
             except Exception as e:
                 print(f"读取 AHT10 数据失败: {e}")
                 return None
@@ -132,8 +132,8 @@ class Device():
                     temperature, humidity = random.randint(25,28), random.randint(60,70)
                 else:
                     co2, tvoc = self._multi_sensor.sgp30_read()
-                    light = self._multi_sensor.bh1750_read()
-                    temperature, humidity = self._multi_sensor.aht10_read()
+                    light = float(self._multi_sensor.bh1750_read())
+                    temperature, humidity = float(self._multi_sensor.aht10_read()[0]), float(self._multi_sensor.aht10_read()[1])
                 self.data["param"]["present"]["co2"]["content"] = co2 if co2 is not None else 0
                 self.data["param"]["present"]["tvoc"]["content"] = tvoc if tvoc is not None else 0
                 self.data["param"]["present"]["light"]["content"] = light if light is not None else 0

@@ -173,3 +173,4 @@ config.toml
 source/GeoLite2-City.mmdb
 source/fullchain.pem
 source/privkey.pem
+source/data.db
