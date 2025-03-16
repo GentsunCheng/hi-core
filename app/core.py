@@ -2,6 +2,7 @@ import os
 import time
 import json
 import toml
+import sqlite3
 import threading
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -50,8 +51,35 @@ class DeviceManager:
         self.uuid_dict = {}
         self.hi_ai = Hi_AI.HIAI_auto()
         self.cmd_json_data = {"action": "trigger", "devices": []}
+        self.db_file = os.getcwd() + "/source/data.db"
+        self._init_db()
         self._initialize_devices()
         self._start_device_initialization()
+
+    def _init_db(self):
+        conn = sqlite3.connect(self.db_file)
+        cursor = conn.cursor()
+        cursor.execute("CREATE TABLE IF NOT EXISTS param (seed TEXT PRIMARY KEY, param BLOB)")
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+
+    def _read_param_from_db(self, seed):
+        cursor = sqlite3.connect(self.db_file)
+        cursor.execute("SELECT param FROM param WHERE seed=?", (seed,))
+        result = cursor.fetchone()
+        cursor.close()
+        if result:
+            return json.loads(result[0].decode("utf-8"))
+        else:
+            return None
+
+    def _write_param_to_db(self, seed, param):
+        cursor = sqlite3.connect(self.db_file)
+        cursor.execute("INSERT INTO param (seed, param) VALUES (?, ?)", (seed, json.dumps(param).encode("utf-8")))
+        self.conn.commit()
+        cursor.close()
 
     def _initialize_devices(self):
         """ 遍历设备类并进行初始化 """
@@ -59,6 +87,9 @@ class DeviceManager:
         for name, DeviceClass in device_classes.items():
             device = DeviceClass()
             print(f"Initializing {device.data['name']}...")
+            if hasattr(device, "seed"):
+                device.data["param"]["present"] = self._read_param_from_db(device.seed)
+                device.unlock()
             device.data["id"] = i
             i += 1
             self.all_json_data["devices"].append(device.data)
@@ -122,6 +153,8 @@ class DeviceManager:
                 self.device_instances[item["id"]].data["param"]["present"] = item["param"]
                 self.all_json_data["devices"][item["id"]]["param"]["present"] = item["param"]
                 self.hi_ai.set_data(json.dumps(self.all_json_data))
+                self._write_param_to_db(self.device_instances[item["id"]].seed, item["param"])
+
 
 
 # 实例化设备管理器

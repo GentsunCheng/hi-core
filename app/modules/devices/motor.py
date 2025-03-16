@@ -159,11 +159,18 @@ class Device:
         self.uuid = "c3cdd2f0-e9e2-4853-8baf-a99a5fefaabc"
         self.trigger = False
         self.init_time = 0
+        self.seed = "4rzrafg24od30xgw2azrigdzhlxlrrjm"
+        self._lock = True
         self.motor = StepperMotorFullStep([70, 69, 72, 79])
         self._thread = threading.Thread(target=self.__run__)
         self._thread.start()
 
+    def unlock(self):
+        self._lock = False
+
     def __run__(self):
+        while self._lock:
+            time.sleep(1)
         data = copy.deepcopy(self.data)
         try:
             while True:
