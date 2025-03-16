@@ -86,10 +86,12 @@ if __name__ == '__main__':
                 "type": "virtual_out",
                 "param": {
                     "present": {
-                        "message": ""
+                        "message": "",
+                        "volume": 50
                     },
                     "selection": {
-                        "message": ""
+                        "message": "",
+                        "volume": ["__RANGE__", 0, 100],
                     }
                 }
             },
@@ -210,9 +212,9 @@ if __name__ == '__main__':
                 }
             },
             {
-                "name": "客厅摄像头",
+                "name": "卧室摄像头",
                 "id": 8,
-                "readme": "This device is a smart camera that detects changes in people (e.g., entry/exit, sleep, etc.), biological information, and disaster situations",
+                "readme": "The device is a smart camera that detects preset scenarios including, but not limited to, changes in people (e.g., entering and exiting, sleeping, etc.), biological information, and disasters through visual modeling.",
                 "type": "smart_sensor",
                 "param": {
                     "present": {
@@ -270,6 +272,23 @@ if __name__ == '__main__':
                     "param": {
                         "present": {
                             "message": "今天天气咋样"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "status": "trigger",
+            "devices":
+            [
+                {
+                    "name": "卧室摄像头",
+                    "id": 8,
+                    "readme": "The device is a smart camera that detects preset scenarios including, but not limited to, changes in people (e.g., entering and exiting, sleeping, etc.), biological information, and disasters through visual modeling.",
+                    "type": "smart_sensor",
+                    "param": {
+                        "present": {
+                            "message": "The user is sleeping."
                         }
                     }
                 }
