@@ -108,7 +108,7 @@ class Device():
         self.init_time = 15 if debug_value == 'False' or debug_value is None else 0
         if debug_value == 'False' or debug_value is None:
             self.multi_sensor = Multi_Sensor()
-        self.thread = threading.Thread(target=self.__run__)
+        self.thread = threading.Thread(target=self.__run__, daemon=True)
         self.thread.start()
         
 

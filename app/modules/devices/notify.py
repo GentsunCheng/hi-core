@@ -34,7 +34,7 @@ class Device():
         self.trigger = False
         self.init_time = 0
         self.notify = Notify()
-        self._thread = threading.Thread(target=self.__run__)
+        self._thread = threading.Thread(target=self.__run__, daemon=True)
         self._thread.start()
 
     def __run__(self):

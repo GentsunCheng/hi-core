@@ -68,7 +68,7 @@ class StepperMotorHalfStep:
                 self.cleanup_gpio()
 
         # 使用线程执行旋转，避免阻塞主程序
-        self.thread = threading.Thread(target=run)
+        self.thread = threading.Thread(target=run, daemon=True)
         self.thread.start()
 
     def stop(self):
@@ -122,7 +122,7 @@ class StepperMotorFullStep:
                 # 旋转结束后关闭所有 GPIO
                 self.cleanup_gpio()
 
-        self.thread = threading.Thread(target=run)
+        self.thread = threading.Thread(target=run, daemon=True)
         self.thread.start()
 
     def stop(self):
@@ -162,7 +162,7 @@ class Device:
         self.seed = "4rzrafg24od30xgw2azrigdzhlxlrrjm"
         self._lock = True
         self.motor = StepperMotorFullStep([70, 69, 72, 79])
-        self._thread = threading.Thread(target=self.__run__)
+        self._thread = threading.Thread(target=self.__run__, daemon=True)
         self._thread.start()
 
     def unlock(self):

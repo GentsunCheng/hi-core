@@ -22,7 +22,7 @@ class Electromagnet:
             print("电磁铁已在运行中。")
             return
         self._stop_event.clear()
-        self._thread = threading.Thread(target=self._run_magnet, args=(duration,))
+        self._thread = threading.Thread(target=self._run_magnet, args=(duration,), daemon=True)
         self._thread.start()
 
     def _run_magnet(self, duration):
@@ -79,7 +79,7 @@ class Device():
         self.trigger = False
         self.init_time = 0
         self.magnet = Electromagnet(226)
-        self._thread = threading.Thread(target=self.__run__)
+        self._thread = threading.Thread(target=self.__run__, daemon=True)
         self._thread.start()
 
     def __run__(self):

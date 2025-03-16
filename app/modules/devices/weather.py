@@ -79,7 +79,7 @@ class Device():
         self.__get_weather__()
         self.data["param"]["present"]["city"] = self.weather.get_city()
         self.duration = 1.5
-        self._thread = threading.Thread(target=self.__run__)
+        self._thread = threading.Thread(target=self.__run__, daemon=True)
         self._stop_event = threading.Event()
         self._thread.start()
 
