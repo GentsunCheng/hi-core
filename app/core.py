@@ -181,8 +181,7 @@ class DeviceManager:
                 if device.trigger and self.init_time_dict.get(device_id) is None:
                     self.cmd_json_data["devices"].append(device.data)
                     device.trigger = False
-            if self.debug_value == 'True' and self.cmd_json_data["devices"]:
-                print(json.dumps(self.cmd_json_data, indent=4))
+            logging.info(json.dumps(self.cmd_json_data, indent=4))
             if self.cmd_json_data["devices"]:
                 self.all_json_data["init_params"]["time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
                 self.hi_ai.set_data(json.dumps(self.all_json_data))
