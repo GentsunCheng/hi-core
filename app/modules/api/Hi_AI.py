@@ -67,7 +67,6 @@ class HIAI_auto:
 
 
 if __name__ == '__main__':
-    import time
     HIAI = HIAI_auto()
     data = {
     "status": "init",
