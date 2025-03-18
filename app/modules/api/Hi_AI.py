@@ -37,7 +37,7 @@ class HIAI_auto:
 
     def set_data(self, data):
         self._data = data
-        self._messages[1]["content"] = self._data
+        self._messages[1]["content"] = data
 
     def oprate(self, data):
         message = copy.deepcopy(self._messages)
