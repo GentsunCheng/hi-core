@@ -1,6 +1,7 @@
 import os
 import json
 import toml
+import copy
 from markdown_it import MarkdownIt
 
 
@@ -12,7 +13,7 @@ if debug_value == 'False' or debug_value is None:
 
 
 class HIAI_auto:
-    def __init__(self, api_key=API_KEY, api_base="https://api.deepseek.com"):
+    def __init__(self, api_key=API_KEY, api_base="https://api.deepseek.com/beta"):
         with open(os.getcwd() + "/source/config.toml", "r", encoding="utf-8") as f:
             config = toml.load(f)
             if config["openai"]["api_key"] != "":
@@ -24,17 +25,23 @@ class HIAI_auto:
         tips_path = os.path.join(module_dir, "tips.md")
         with open(tips_path, "r", encoding="utf-8") as f:
             self._tips = f.read()
-        self._messages = [{"role": "system", "content": self._tips}]
         self._data = {}
-        self._messages.append({"role": "user", "content": self._data})
+        self._messages = [
+            {"role": "system", "content": self._tips},
+            {"role": "user", "content": self._data},
+            {"role": "assistant", "content": ""},
+            {"role": "user", "content": ""},
+            {"role": "assistant", "content": "```json\n", "prefix": True}
+        ]
+        
 
     def set_data(self, data):
         self._data = data
         self._messages[1]["content"] = self._data
 
     def oprate(self, data):
-        messages = self._messages
-        messages.append({"role": "user", "content": data})
+        message = copy.deepcopy(self._messages)
+        message[3]["content"] = data
         if debug_value == 'True':
             data = {
                 "actions": [
@@ -48,24 +55,15 @@ class HIAI_auto:
                     }
                 ]
             }
-            content_md = "```json\n" + json.dumps(data) + "\n```"
+            return json.dumps(data)
         else:
             completion  = self._client.chat.completions.create(
                 model="deepseek-chat",
-                messages=self._messages,
+                messages=message,
                 stream=False,
+                stop=["```"],
             )
-            content_md = completion.choices[0].message.content
-        parsed = self._md.parse(content_md)
-        code_blocks = []
-        for token in parsed:
-            if token.type == 'fence' and token.info == 'json':
-                code_blocks.append(token.content)
-        if code_blocks:
-            content = code_blocks[0].strip()
-            return content
-        else:
-            return '{"actions": []}'
+            return completion.choices[0].message.content
 
 
 if __name__ == '__main__':
