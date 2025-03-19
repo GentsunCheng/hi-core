@@ -72,7 +72,10 @@ class Device():
                 }
             }
         }
-        self.uuid = "2c03700e-4765-4173-ba91-014baa55013e"
+        self.sys_param = {
+            "show": True,
+            "uuid": "2c03700e-4765-4173-ba91-014baa55013e"
+        }
         self.trigger = False
         self.init_time = 0
         self._weather = Weather()

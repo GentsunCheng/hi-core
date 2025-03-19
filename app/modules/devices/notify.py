@@ -31,6 +31,10 @@ class Device():
                 }
             }
         }
+        self.sys_param = {
+            "show": False,
+            "uuid": "1d238926-9cbe-4f99-b339-29a6b2168692"
+        }
         self.trigger = False
         self.init_time = 0
         self.notify = Notify()

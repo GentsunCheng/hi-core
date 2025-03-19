@@ -43,7 +43,7 @@ class DeviceManager:
         }
         self.device_instances = {}
         self.init_time_dict = {}
-        self.uuid_dict = {}
+        self.sys_param = {}
         self.hi_ai = Hi_AI.HIAI_auto()
         self.cmd_json_data = {"action": "trigger", "devices": []}
         self._db_file = os.getcwd() + "/source/data.db"
@@ -145,8 +145,7 @@ class DeviceManager:
                 
                 self.device_instances[device.data["id"]] = device
                 
-                if hasattr(device, "uuid"):
-                    self.uuid_dict[device.data["id"]] = device.uuid
+                self.sys_param[device.data["id"]] = device.sys_param
             
             except Exception as e:
                 print(f"Failed to initialize {name}: {e}")
@@ -238,9 +237,9 @@ def get_devices():
     # 直接返回 DeviceManager 实例中的 all_json_data 数据
     return jsonify(manager.all_json_data)
 
-@app.route('/api/devices/uuid', methods=['GET'])
+@app.route('/api/devices/sys_param', methods=['GET'])
 def get_uuid():
-    return jsonify(manager.uuid_dict)
+    return jsonify(manager.sys_param)
 
 # 定义一个 POST 接口，用于下发控制命令
 @app.route('/api/control', methods=['POST'])

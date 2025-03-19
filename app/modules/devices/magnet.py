@@ -75,7 +75,10 @@ class Device():
                 }
             }
         }
-        self.uuid = "4f836a1a-eedd-4d93-8258-63b1fb74e610"
+        self.sys_param = {
+            "show": True,
+            "uuid": "4f836a1a-eedd-4d93-8258-63b1fb74e610"
+        }
         self.trigger = False
         self.init_time = 0
         self._magnet = Electromagnet(231)

@@ -103,7 +103,10 @@ class Device():
                 }
             }
         }
-        self.uuid = "7031be97-7758-4eec-9f77-06a83112554f"
+        self.sys_param = {
+            "show": True,
+            "uuid": "7031be97-7758-4eec-9f77-06a83112554f"
+        }
         self.trigger = False
         self.init_time = 0
         if debug_value == 'False' or debug_value is None:

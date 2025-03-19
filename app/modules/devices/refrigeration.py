@@ -119,7 +119,10 @@ class Device:
                 }
             }
         }
-        self.uuid = "ece5a5ed-06cd-4f1a-a607-e8a23f976cd6"
+        self.sys_param = {
+            "show": True,
+            "uuid": "ece5a5ed-06cd-4f1a-a607-e8a23f976cd6"
+        }
         self.trigger = False
         self.init_time = 0
         self.seed = "fzt8so0xx3hv1ib87zluixu8td7koktk"
