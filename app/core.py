@@ -124,24 +124,36 @@ class DeviceManager:
         """ 遍历设备类并进行初始化 """
         i = 0
         for name, DeviceClass in device_classes.items():
-            device = DeviceClass()
-            print(f"Initializing {device.data['name']}...")
-            if hasattr(device, "seed"):
-                param = self._read_param_from_db(device.seed)
-                if param:
-                    device.data["param"]["present"] = param
-                else:
-                    self._write_param_to_db(device.seed, device.data["param"]["present"])
-                device.unlock()
-            device.data["id"] = i
-            i += 1
-            self.all_json_data["devices"].append(device.data)
-            if device.init_time != 0:
-                self.init_time_dict[device.data["id"]] = device.init_time
-            self.device_instances[device.data["id"]] = device
-            if hasattr(device, "uuid"):
-                self.uuid_dict[device.data["id"]] = device.uuid
+            try:
+                device = DeviceClass()
+                print(f"Initializing {device.data['name']}...")
+                
+                if hasattr(device, "seed"):
+                    param = self._read_param_from_db(device.seed)
+                    if param:
+                        device.data["param"]["present"] = param
+                    else:
+                        self._write_param_to_db(device.seed, device.data["param"]["present"])
+                    device.unlock()
+                
+                device.data["id"] = i
+                i += 1
+                self.all_json_data["devices"].append(device.data)
+                
+                if device.init_time != 0:
+                    self.init_time_dict[device.data["id"]] = device.init_time
+                
+                self.device_instances[device.data["id"]] = device
+                
+                if hasattr(device, "uuid"):
+                    self.uuid_dict[device.data["id"]] = device.uuid
+            
+            except Exception as e:
+                print(f"Failed to initialize {name}: {e}")
+                continue
+        
         self.hi_ai.set_data(json.dumps(self.all_json_data))
+        
         if self.debug_value == 'True':
             print(json.dumps(self.all_json_data, indent=4))
 
