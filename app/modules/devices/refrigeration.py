@@ -6,7 +6,7 @@ from periphery import Serial
 
 
 class Refrigeration:
-    def __init__(self, brand, serial_port="/dev/ttyAS5"):
+    def __init__(self, brand, serial_port="/dev/ttyS5"):
         self._header = [0xAA, 0x55, 0x0A]
         self.brands_list = {
             "gree": 0x0BB9,
@@ -73,7 +73,7 @@ class Refrigeration:
         self.brand = brand
     
     def control(self, data):
-        brands_code = self.brands[self.brand]
+        brands_code = self.brands_list[self.brand]
         power_code = self.power[data["power"]]
         fan_up_and_down_code = self.fan_up_and_down[data["fan_up_and_down"]]
         screen_code = self.screen[data["screen"]]
@@ -81,7 +81,7 @@ class Refrigeration:
         temperature_code = data["temperature"] - 16
         code1 = power_code << 7 | fan_up_and_down_code << 6 | fan_left_and_right_code << 5 | screen_code << 4 | temperature_code
         code2 = self.mode[data["mode"]] << 4 | self.fan_speed[data["fan_speed"]]
-        key_code = self.key_core[data["key"]]
+        key_code = self.key_core[data["key_core"]]
         param_code = 0x00
         command = self._header + [0x00] + [0x00] + [brands_code >> 8, brands_code & 0xFF] + [code1, code2, 0x00, key_code, param_code]
         checksum = 0
@@ -143,3 +143,20 @@ class Device:
                     time.sleep(1)
             except KeyboardInterrupt:
                 self._thread.join()
+
+
+if __name__ == "__main__":
+    data = {
+        "power": "on",
+        "fan_up_and_down": "on",
+        "screen": "on",
+        "fan_left_and_right": "on",
+        "temperature": 20,
+        "mode": "cool",
+        "fan_speed": "high",
+        "key_core": "power"
+    }
+    refrigeration = Refrigeration(brand="gree")
+    while True:
+        input("Press Enter to control")
+        refrigeration.control(data)
