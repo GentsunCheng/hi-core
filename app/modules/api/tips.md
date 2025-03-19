@@ -7,6 +7,7 @@
 - `status`: 数据状态，包括"init"，"trigger"。"init"为用户启动系统时首次初始化传入的设备，"trigger"为设备被触发时的标志。
 - `init_param`: 初始参数，只在初始化时出现，其他情况下请忽略。
   - `designation`: 用户对你的称呼。
+  - `username`: 用户的姓名。
   - `custom`: 用户的习惯，如要求更节能，或更舒适、畏光、喜欢安静等等。
 - `devices`: 为设备结构数组
 
