@@ -120,6 +120,15 @@ class DeviceManager:
         conn.close()
         self._writting_db = False
 
+    def _compare_keys(self, dict1, dict2):
+        if set(dict1.keys()) != set(dict2.keys()):
+            return False
+        for key in dict1:
+            if isinstance(dict1[key], dict) and isinstance(dict2[key], dict):
+                if not self._compare_keys(dict1[key], dict2[key]):
+                    return False
+        return True
+
     def _initialize_devices(self):
         """ 遍历设备类并进行初始化 """
         i = 0
@@ -202,8 +211,14 @@ class DeviceManager:
             return
         for item in data_decode["actions"]:
             if self.device_instances[item["id"]]:
-                self.device_instances[item["id"]].data["param"]["present"] = item["param"]
-                self.all_json_data["devices"][item["id"]]["param"]["present"] = item["param"]
+                if self._compare_keys(self.device_instances[item["id"]].data["param"]["present"], item["param"]):
+                    self.device_instances[item["id"]].data["param"]["present"] = item["param"]
+                else:
+                    continue
+                if self._compare_keys(self.all_json_data["devices"][item["id"]]["param"]["present"], item["param"]):
+                    self.all_json_data["devices"][item["id"]]["param"]["present"] = item["param"]
+                else:
+                    continue
                 self.hi_ai.set_data(json.dumps(self.all_json_data))
                 if hasattr(self.device_instances[item["id"]], "seed"):
                     self._update_param_in_db(self.device_instances[item["id"]].seed, item["param"])
