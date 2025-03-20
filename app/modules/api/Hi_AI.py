@@ -13,7 +13,7 @@ if debug_value == 'False' or debug_value is None:
 
 
 class HIAI_auto:
-    def __init__(self, api_key=API_KEY, api_base="https://api.deepseek.com/beta"):
+    def __init__(self, api_key=OPENAI_API_KEY, api_base="https://api.deepseek.com/beta"):
         with open(os.getcwd() + "/source/config.toml", "r", encoding="utf-8") as f:
             config = toml.load(f)
             if config["openai"]["api_key"] != "":
