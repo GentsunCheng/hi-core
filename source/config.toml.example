@@ -1,3 +1,6 @@
+[core]
+secret_api_key = "debug_key"
+
 [openai]
 api_key=""
 

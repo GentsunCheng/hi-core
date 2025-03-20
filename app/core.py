@@ -250,7 +250,11 @@ app = Flask(__name__)
 def run_manager():
     manager.run()
 
-SECRET_API_KEY = 'debug_key'
+SECRET_API_KEY = os.environ.get('SECRET_API_KEY')
+with open(os.getcwd() + "/source/config.toml", "r", encoding="utf-8") as f:
+    config = toml.load(f)
+    if config["core"]["secret_api_key"] != "":
+        SECRET_API_KEY = config["core"]["secret_api_key"]
 
 # 添加密钥认证检查，在每次请求前验证密钥
 @app.before_request
