@@ -6,7 +6,7 @@ from markdown_it import MarkdownIt
 
 
 debug_value = os.environ.get('DEBUG')
-API_KEY = os.environ.get('API_KEY')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
 if debug_value == 'False' or debug_value is None:
     from openai import OpenAI
