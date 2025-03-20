@@ -10,7 +10,11 @@ module_names = [os.path.basename(f)[:-3] for f in module_files if f.endswith(".p
 device_classes = {}
 
 for module in module_names:
-    mod = importlib.import_module(f"modules.devices.{module}")
+    try:
+        mod = importlib.import_module(f"modules.devices.{module}")
+    except ImportError as e:
+        print(f"Error importing module {module}: {e}")
+        continue
 
     # 获取模块中的 `Device` 类
     if hasattr(mod, "Device"):
