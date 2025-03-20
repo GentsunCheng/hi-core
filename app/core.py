@@ -49,6 +49,7 @@ class DeviceManager:
         self.cmd_json_data = {"action": "trigger", "devices": []}
         self._db_file = os.getcwd() + "/source/data.db"
         self._writting_db = False
+        self.uid ="10001"
         self._init_db()
         self._initialize_devices()
         self._start_device_initialization()
@@ -62,9 +63,9 @@ class DeviceManager:
             conn.commit()
             cursor.execute("DROP TABLE IF EXISTS userinfo")
             conn.commit()
-        cursor.execute("CREATE TABLE IF NOT EXISTS param (seed TEXT PRIMARY KEY, param BLOB)")
+        cursor.execute("CREATE TABLE IF NOT EXISTS param (id TEXT PRIMARY KEY, param BLOB)")
         conn.commit()
-        cursor.execute("CREATE TABLE IF NOT EXISTS userinfo (uid TEXT PRIMARY KEY, param BLOB)")
+        cursor.execute("CREATE TABLE IF NOT EXISTS userinfo (id TEXT PRIMARY KEY, param BLOB)")
         conn.commit()
         cursor.close()
         conn.close()
@@ -82,7 +83,8 @@ class DeviceManager:
         self._writting_db = True
         conn = sqlite3.connect(self._db_file)
         cursor = conn.cursor()
-        cursor.execute("SELECT param FROM ? WHERE id=?", (db, id))
+        query = f"SELECT param FROM {db} WHERE id=?"
+        cursor.execute(query, (id,))
         result = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -92,7 +94,7 @@ class DeviceManager:
         else:
             return None
 
-    def _write_param_to_db(self, db, key, value, timeout=5):
+    def _write_param_to_db(self, db, id, value, timeout=5):
         for i in range(timeout * 2):
             if self._writting_db:
                 time.sleep(0.5)
@@ -103,7 +105,8 @@ class DeviceManager:
         self._writting_db = True
         conn = sqlite3.connect(self._db_file)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO ? (id, param) VALUES (?, ?)", (db, key, json.dumps(value).encode("utf-8")))
+        query = f"INSERT INTO {db} (id, param) VALUES (?, ?)"
+        cursor.execute(query, (id, json.dumps(value).encode("utf-8")))
         conn.commit()
         cursor.close()
         conn.close()
@@ -120,7 +123,8 @@ class DeviceManager:
         self._writting_db = True
         conn = sqlite3.connect(self._db_file)
         cursor = conn.cursor()
-        cursor.execute("UPDATE ? SET param=? WHERE id=?", (db, json.dumps(value).encode("utf-8"), id))
+        query = f"UPDATE {db} SET param=? WHERE id=?"
+        cursor.execute(query, (json.dumps(value).encode("utf-8"), id))
         conn.commit()
         cursor.close()
         conn.close()
@@ -137,11 +141,11 @@ class DeviceManager:
 
     def _initialize_devices(self):
         """ 遍历设备类并进行初始化 """
-        userinfo = self._read_param_from_db(db="userinfo", id="10001", timeout=5)
+        userinfo = self._read_param_from_db(db="userinfo", id=self.uid, timeout=5)
         if userinfo:
             self.all_json_data["init_param"] = userinfo
         else:
-            self._write_param_to_db(db="userinfo", key="10001", value=self.all_json_data["init_param"], timeout=5)
+            self._write_param_to_db(db="userinfo", id=self.uid, value=self.all_json_data["init_param"], timeout=5)
         i = 0
         for name, DeviceClass in device_classes.items():
             try:
@@ -153,7 +157,7 @@ class DeviceManager:
                     if param:
                         device.data["param"]["present"] = param
                     else:
-                        self._write_param_to_db(db="param", key=device.seed, value=device.data["param"]["present"])
+                        self._write_param_to_db(db="param", id=device.seed, value=device.data["param"]["present"])
                     device.unlock()
                 
                 device.data["id"] = i
