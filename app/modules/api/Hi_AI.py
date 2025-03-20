@@ -71,7 +71,8 @@ if __name__ == '__main__':
     data = {
     "status": "init",
     "init_param": {
-        "Designation": "Madis",
+        "designation": "Madis",
+        "username": "GentsunCheng",
         "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
     },
     "devices":
