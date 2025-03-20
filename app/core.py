@@ -203,8 +203,9 @@ class DeviceManager:
                         print(f"设备 {device_id} 初始化时发生异常: {exc}")
 
     def set_userinfo(self, data):
-        self.all_json_data["init_param"] = data["param"]
-        self._update_param_in_db(db="userinfo", id=data["uid"], value=self.all_json_data["init_param"], timeout=5)
+        if self._compare_keys(self.all_json_data["init_param"], json.loads(data)):
+            self.all_json_data["init_param"] = json.loads(data)
+            self._update_param_in_db(db="userinfo", id=self.uid, value=json.loads(data), timeout=5)
 
 
     def run(self):
