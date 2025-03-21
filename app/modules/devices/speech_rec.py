@@ -38,7 +38,15 @@ class Device():
 
     def __run__(self):
         while True:
-            if(self.speechrec.speeched):
+            if self.speechrec.speeched:
                 self.data["param"]["present"]["message"] = self.speechrec.get_text()
                 self.trigger = True
+                while self.trigger:
+                    time.sleep(0.5)
+                self.data["param"]["present"]["message"] = ""
+            if self.data["param"]["present"]["message"] != "":
+                self.trigger = True
+                while self.trigger:
+                    time.sleep(0.5)
+                self.data["param"]["present"]["message"] = ""
             time.sleep(1)
