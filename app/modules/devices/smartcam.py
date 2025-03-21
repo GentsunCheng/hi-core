@@ -13,10 +13,10 @@ class SmartCam:
         self._thread = threading.Thread(target=self.__run__)
         self._thread.start()
         self._frame = None
-        model_path = os.getcwd() + "/source/yolo8n.pt"
+        model_path = os.getcwd() + "/source/yolo11n.pt"
         if not os.path.exists(model_path):
             print("Model not found, start Download...")
-            url = "https://static.orii.top/yolo8n.pt"
+            url = "https://static.orii.top/yolo11n.pt"
             with requests.get(url, stream=True) as response:
                 with open(model_path, "wb") as file:
                     shutil.copyfileobj(response.raw, file)
