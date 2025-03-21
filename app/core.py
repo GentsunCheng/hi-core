@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import copy
 import toml
 import sqlite3
 import threading
@@ -47,6 +48,7 @@ class DeviceManager:
         self.sys_param = {}
         self.hi_ai = Hi_AI.HIAI_auto()
         self.trig_device_config = {"action": "trigger", "devices": []}
+        self.special_device_config = {"devices": []}
         self._db_file = os.getcwd() + "/source/data.db"
         self._writting_db = False
         self.uid ="10001"
@@ -163,6 +165,11 @@ class DeviceManager:
                 device.data["id"] = i
                 i += 1
                 self.all_device_config["devices"].append(device.data)
+                if hasattr(device, "special"):
+                    if device.special:
+                        tmp_data = copy.deepcopy(device.data)
+                        tmp_data["uuid"] = device.uuid
+                        self.special_device_config["devices"].append(tmp_data)
                 
                 if device.init_time != 0:
                     self.init_time_dict[device.data["id"]] = device.init_time
@@ -286,6 +293,10 @@ threading.Thread(target=run_manager, daemon=True).start()
 def get_devices():
     # 直接返回 DeviceManager 实例中的 all_json_data 数据
     return jsonify(manager.all_device_config)
+
+@app.route('/api/special_devices', methods=['GET'])
+def get_special_devices():
+    return jsonify(manager.special_device_config)
 
 @app.route('/api/devices/sys_param', methods=['GET'])
 def get_uuid():

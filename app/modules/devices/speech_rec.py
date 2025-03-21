@@ -30,6 +30,7 @@ class Device():
             "show": False,
             "uuid": "49160ffc-7f82-4703-802e-d985ea02d222"
         }
+        self.special = True
         self.trigger = False
         self.init_time = 0
         self._speechrec = SpeechRec()
