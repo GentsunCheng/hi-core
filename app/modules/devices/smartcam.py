@@ -21,6 +21,8 @@ class SmartCam:
                 with open(model_path, "wb") as file:
                     shutil.copyfileobj(response.raw, file)
             print("Download finished")
+        self._complete = False
+        self._inited = False
         self._detect_old = {
             "person": 0,
             "fire": 0
@@ -45,6 +47,7 @@ class SmartCam:
                 time.sleep(1 / fps)
                 if self._frame is None:
                     continue
+                self._complete = True
                 results = self._model(self._frame)
                 person_count = 0
                 fire_count = 0
@@ -63,7 +66,16 @@ class SmartCam:
                 print(e)
                 time.sleep(1)
 
+    def _init_data(self):
+        while not self._complete:
+            time.sleep(1)
+        self._detect_old["person"] = self._detect_last["person"]
+        self._detect_old["fire"] = self._detect_last["fire"]
+        self._inited = True
+
     def check_person(self, waittime=60):
+        while not self._inited:
+            time.sleep(1)
         current_time = time.time()
         if self._detect_old["person"] > 0 and self._detect_last["person"] == 0:
             if current_time - self._detect_time_old["person"] > waittime:
@@ -74,11 +86,21 @@ class SmartCam:
             self._detect_time_old["person"] = current_time
             self._detect_old["person"] = self._detect_last["person"]
             return 'enter'
+        elif self._detect_old["person"] > 0 and self._detect_last["person"] > 0:
+            self._detect_time_old["person"] = current_time
+            self._detect_old["person"] = self._detect_last["person"]
+            return 'stay'
+        elif self._detect_old["person"] == 0 and self._detect_last["person"] == 0:
+            self._detect_time_old["person"] = current_time
+            self._detect_old["person"] = 0
+            return 'none'
         else:
             return None
 
 
     def check_fire(self, waittime=60):
+        while not self._inited:
+            time.sleep(1)
         current_time = time.time()
         if self._detect_old["fire"] == 0 and self._detect_last["fire"] > 0:
             if current_time - self._detect_time_old["fire"] > waittime:
@@ -111,13 +133,19 @@ class Device:
 
     def __run__(self):
         while True:
-            if self._smartcam.check_person() == "left":
+            person_status = self._smartcam.check_person()
+            fire_status = self._smartcam.check_fire()
+            if person_status == "left":
                 self.data["param"]["present"]["message"] = "Person left"
                 self.trigger = True
-            if self._smartcam.check_person() == "enter":
+            if person_status == "enter":
                 self.data["param"]["present"]["message"] = "Person enter"
                 self.trigger = True
-            if self._smartcam.check_fire() == True:
+            if person_status == "stay":
+                self.data["param"]["present"]["message"] = "Person inside"
+            if person_status == "none":
+                self.data["param"]["present"]["message"] = "No person"
+            if fire_status == True:
                 self.data["param"]["present"]["message"] = "Burning fire"
                 self.trigger = True
             time.sleep(1)
