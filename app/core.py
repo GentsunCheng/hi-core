@@ -33,7 +33,7 @@ app = Flask(__name__)
 class DeviceManager:
     def __init__(self):
         self.debug_value = os.environ.get('DEBUG')
-        self.all_json_data = {
+        self.all_device_config = {
             "status": "init",
             "init_param": {
                 "designation": "Madis",
@@ -46,7 +46,7 @@ class DeviceManager:
         self.init_time_dict = {}
         self.sys_param = {}
         self.hi_ai = Hi_AI.HIAI_auto()
-        self.cmd_json_data = {"action": "trigger", "devices": []}
+        self.trig_device_config = {"action": "trigger", "devices": []}
         self._db_file = os.getcwd() + "/source/data.db"
         self._writting_db = False
         self.uid ="10001"
@@ -143,9 +143,9 @@ class DeviceManager:
         """ 遍历设备类并进行初始化 """
         userinfo = self._read_param_from_db(db="userinfo", id=self.uid, timeout=5)
         if userinfo:
-            self.all_json_data["init_param"] = userinfo
+            self.all_device_config["init_param"] = userinfo
         else:
-            self._write_param_to_db(db="userinfo", id=self.uid, value=self.all_json_data["init_param"], timeout=5)
+            self._write_param_to_db(db="userinfo", id=self.uid, value=self.all_device_config["init_param"], timeout=5)
         i = 0
         for name, DeviceClass in device_classes.items():
             try:
@@ -162,7 +162,7 @@ class DeviceManager:
                 
                 device.data["id"] = i
                 i += 1
-                self.all_json_data["devices"].append(device.data)
+                self.all_device_config["devices"].append(device.data)
                 
                 if device.init_time != 0:
                     self.init_time_dict[device.data["id"]] = device.init_time
@@ -175,10 +175,10 @@ class DeviceManager:
                 print(f"Failed to initialize {name}: {e}")
                 continue
         
-        self.hi_ai.set_data(json.dumps(self.all_json_data))
+        self.hi_ai.set_data(json.dumps(self.all_device_config))
         
         if self.debug_value == 'True':
-            print(json.dumps(self.all_json_data, indent=4))
+            print(json.dumps(self.all_device_config, indent=4))
 
     def _start_device_initialization(self):
         """ 使用线程池初始化设备 """
@@ -203,8 +203,8 @@ class DeviceManager:
                         print(f"设备 {device_id} 初始化时发生异常: {exc}")
 
     def set_userinfo(self, data):
-        if self._compare_keys(self.all_json_data["init_param"], json.loads(data)):
-            self.all_json_data["init_param"] = json.loads(data)
+        if self._compare_keys(self.all_device_config["init_param"], json.loads(data)):
+            self.all_device_config["init_param"] = json.loads(data)
             self._update_param_in_db(db="userinfo", id=self.uid, value=json.loads(data), timeout=5)
 
 
@@ -212,14 +212,14 @@ class DeviceManager:
         """ 进入主循环，定期发送命令 """
         while True:
             time.sleep(1)
-            self.cmd_json_data["devices"] = []
+            self.trig_device_config["devices"] = []
             for device_id, device in self.device_instances.items():
                 if device.trigger and self.init_time_dict.get(device_id) is None:
-                    self.cmd_json_data["devices"].append(device.data)
+                    self.trig_device_config["devices"].append(device.data)
                     device.trigger = False
-            if self.cmd_json_data["devices"]:
-                logging.info(json.dumps(self.cmd_json_data, indent=4))
-                data = self.hi_ai.oprate(json.dumps(self.cmd_json_data))
+            if self.trig_device_config["devices"]:
+                logging.info(json.dumps(self.trig_device_config, indent=4))
+                data = self.hi_ai.oprate(json.dumps(self.trig_device_config))
                 self.cmd(data)
                 logging.info(data)
 
@@ -236,11 +236,11 @@ class DeviceManager:
                     self.device_instances[item["id"]].data["param"]["present"] = item["param"]
                 else:
                     continue
-                if self._compare_keys(self.all_json_data["devices"][item["id"]]["param"]["present"], item["param"]):
-                    self.all_json_data["devices"][item["id"]]["param"]["present"] = item["param"]
+                if self._compare_keys(self.all_device_config["devices"][item["id"]]["param"]["present"], item["param"]):
+                    self.all_device_config["devices"][item["id"]]["param"]["present"] = item["param"]
                 else:
                     continue
-                self.hi_ai.set_data(json.dumps(self.all_json_data))
+                self.hi_ai.set_data(json.dumps(self.all_device_config))
                 if hasattr(self.device_instances[item["id"]], "seed"):
                     self._update_param_in_db(db="param", id=self.device_instances[item["id"]].seed, value=item["param"])
 
@@ -275,7 +275,7 @@ threading.Thread(target=run_manager, daemon=True).start()
 @app.route('/api/devices', methods=['GET'])
 def get_devices():
     # 直接返回 DeviceManager 实例中的 all_json_data 数据
-    return jsonify(manager.all_json_data)
+    return jsonify(manager.all_device_config)
 
 @app.route('/api/devices/sys_param', methods=['GET'])
 def get_uuid():
@@ -293,7 +293,7 @@ def control_device():
 
 @app.route('/api/userinfo', methods=['GET'])
 def get_userinfo():
-    return jsonify(manager.all_json_data["init_param"])
+    return jsonify(manager.all_device_config["init_param"])
 
 @app.route('/api/userinfo', methods=['POST'])
 def set_userinfo():
