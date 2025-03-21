@@ -168,7 +168,7 @@ class DeviceManager:
                 if hasattr(device, "special"):
                     if device.special:
                         tmp_data = copy.deepcopy(device.data)
-                        tmp_data["uuid"] = device.uuid
+                        tmp_data["uuid"] = device.sys_param["uuid"]
                         self.special_device_config["devices"].append(tmp_data)
                 
                 if device.init_time != 0:
