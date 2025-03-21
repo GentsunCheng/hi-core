@@ -224,8 +224,10 @@ class DeviceManager:
                     self.trig_device_config["devices"].append(device.data)
                     device.trigger = False
             if self.trig_device_config["devices"]:
+                print(json.dumps(self.trig_device_config, indent=4))
                 logging.info(json.dumps(self.trig_device_config, indent=4))
                 data = self.hi_ai.oprate(json.dumps(self.trig_device_config))
+                print(data)
                 self.cmd(data)
                 logging.info(data)
 
@@ -236,7 +238,7 @@ class DeviceManager:
         except json.JSONDecodeError:
             logging.error("无法解析 JSON 数据")
             return
-        if not hasattr(data_decode, "actions"):
+        if not "actions" in data_decode:
             return
         for item in data_decode["actions"]:
             if self.device_instances[item["id"]]:

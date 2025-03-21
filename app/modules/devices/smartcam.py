@@ -8,10 +8,7 @@ from ultralytics import YOLO
 
 class SmartCam:
     def __init__(self):
-        self._cap = cv2.VideoCapture(0)
-        self._ret, self._frame = self._cap.read()
-        self._thread = threading.Thread(target=self.__run__)
-        self._thread.start()
+        self._cap = cv2.VideoCapture("/dev/video1", cv2.CAP_V4L2)
         self._frame = None
         model_path = os.getcwd() + "/source/yolo11n.pt"
         if not os.path.exists(model_path):
@@ -35,15 +32,17 @@ class SmartCam:
             "person": time.time(),
             "fire": time.time()
         }
-        self._model = YOLO(model_path)
+        self._model = YOLO(model=str(model_path))
         self._thread = threading.Thread(target=self._get_image, daemon=True)
         self._thread.start()
 
 
     def _get_image(self, fps=0.2):
+        width, height = 640, 480
+        device = "/dev/video1"
         while True:
             try:
-                self._ret, self._frame = self._cap.read()
+                _, self._frame = self._cap.read()
                 time.sleep(1 / fps)
                 if self._frame is None:
                     continue
@@ -54,7 +53,7 @@ class SmartCam:
                 for result in results:
                     if hasattr(result, "boxes") and result.boxes is not None:
                         for cls in result.boxes.cls.cpu().numpy():
-                            label = self._model.names[int(cls)]
+                            label = self._model.names[int(cls)]                       
                             if label.lower() == "person":
                                 person_count += 1
                             elif label.lower() == "fire":
