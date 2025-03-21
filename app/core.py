@@ -230,6 +230,8 @@ class DeviceManager:
         except json.JSONDecodeError:
             logging.error("无法解析 JSON 数据")
             return
+        if not hasattr(data_decode, "actions"):
+            return
         for item in data_decode["actions"]:
             if self.device_instances[item["id"]]:
                 if self._compare_keys(self.device_instances[item["id"]].data["param"]["present"], item["param"]):
