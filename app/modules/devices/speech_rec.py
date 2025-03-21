@@ -32,14 +32,14 @@ class Device():
         }
         self.trigger = False
         self.init_time = 0
-        self.speechrec = SpeechRec()
+        self._speechrec = SpeechRec()
         self._thread = threading.Thread(target=self.__run__)
         self._thread.start()
 
     def __run__(self):
         while True:
-            if self.speechrec.speeched:
-                self.data["param"]["present"]["message"] = self.speechrec.get_text()
+            if self._speechrec.speeched:
+                self.data["param"]["present"]["message"] = self._speechrec.get_text()
                 self.trigger = True
                 while self.trigger:
                     time.sleep(0.5)

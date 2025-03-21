@@ -8,11 +8,11 @@ from ultralytics import YOLO
 
 class SmartCam:
     def __init__(self):
-        self.cap = cv2.VideoCapture(0)
-        self.ret, self.frame = self.cap.read()
-        self.thread = threading.Thread(target=self.__run__)
-        self.thread.start()
-        self.frame = None
+        self._cap = cv2.VideoCapture(0)
+        self._ret, self._frame = self._cap.read()
+        self._thread = threading.Thread(target=self.__run__)
+        self._thread.start()
+        self._frame = None
         model_path = os.getcwd() + "/source/yolo8n.pt"
         if not os.path.exists(model_path):
             print("Model not found, start Download...")
@@ -21,19 +21,19 @@ class SmartCam:
                 with open(model_path, "wb") as file:
                     shutil.copyfileobj(response.raw, file)
             print("Download finished")
-        self.detect_old = {
+        self._detect_old = {
             "person": 0,
             "fire": 0
         }
-        self.detect_last = {
+        self._detect_last = {
             "person": 0,
             "fire": 0
         }
-        self.detect_time_old = {
+        self._detect_time_old = {
             "person": time.time(),
             "fire": time.time()
         }
-        self.model = YOLO(model_path)
+        self._model = YOLO(model_path)
         self._thread = threading.Thread(target=self._get_image, daemon=True)
         self._thread.start()
 
@@ -41,23 +41,23 @@ class SmartCam:
     def _get_image(self, fps=0.2):
         while True:
             try:
-                self.ret, self.frame = self.cap.read()
+                self._ret, self._frame = self._cap.read()
                 time.sleep(1 / fps)
-                if self.frame is None:
+                if self._frame is None:
                     continue
-                results = self.model(self.frame)
+                results = self._model(self._frame)
                 person_count = 0
                 fire_count = 0
                 for result in results:
                     if hasattr(result, "boxes") and result.boxes is not None:
                         for cls in result.boxes.cls.cpu().numpy():
-                            label = self.model.names[int(cls)]
+                            label = self._model.names[int(cls)]
                             if label.lower() == "person":
                                 person_count += 1
                             elif label.lower() == "fire":
                                 fire_count += 1
-                self.detect_last["person"] = person_count
-                self.detect_last["fire"] = fire_count
+                self._detect_last["person"] = person_count
+                self._detect_last["fire"] = fire_count
 
             except Exception as e:
                 print(e)
@@ -65,14 +65,14 @@ class SmartCam:
 
     def check_person(self, waittime=60):
         current_time = time.time()
-        if self.detect_old["person"] > 0 and self.detect_last["person"] == 0:
-            if current_time - self.detect_time_old["person"] > waittime:
-                self.detect_time_old["person"] = current_time
-                self.detect_old["person"] = 0
+        if self._detect_old["person"] > 0 and self._detect_last["person"] == 0:
+            if current_time - self._detect_time_old["person"] > waittime:
+                self._detect_time_old["person"] = current_time
+                self._detect_old["person"] = 0
                 return 'left'
-        elif self.detect_old["person"] == 0 and self.detect_last["person"] > 0:
-            self.detect_time_old["person"] = current_time
-            self.detect_old["person"] = self.detect_last["person"]
+        elif self._detect_old["person"] == 0 and self._detect_last["person"] > 0:
+            self._detect_time_old["person"] = current_time
+            self._detect_old["person"] = self._detect_last["person"]
             return 'enter'
         else:
             return None
@@ -80,8 +80,8 @@ class SmartCam:
 
     def check_fire(self, waittime=60):
         current_time = time.time()
-        if self.detect_old["fire"] == 0 and self.detect_last["fire"] > 0:
-            if current_time - self.detect_time_old["fire"] > waittime:
+        if self._detect_old["fire"] == 0 and self._detect_last["fire"] > 0:
+            if current_time - self._detect_time_old["fire"] > waittime:
                 return True
         else:
             return False

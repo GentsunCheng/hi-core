@@ -1,19 +1,17 @@
 import threading
 import time
+import subprocess
 
 
 class Notify():
     def __init__(self):
-        pass
+        self._process = None
 
     def speech(self, message):
-        pass
+        self._process = subprocess.Popen(["espeak-ng", "-v", "zh-cmn", message])
 
     def stop(self):
-        pass
-
-    def __tts__(self):
-        pass
+        self._process.kill()
 
 class Device():
     def __init__(self):
@@ -37,14 +35,14 @@ class Device():
         }
         self.trigger = False
         self.init_time = 0
-        self.notify = Notify()
+        self._notify = Notify()
         self._thread = threading.Thread(target=self.__run__, daemon=True)
         self._thread.start()
 
     def __run__(self):
         while True:
             if self.data["param"]["present"]["message"] != "":
-                self.notify.stop()
-                self.notify.speech(self.data["param"]["present"]["message"])
+                self._notify.stop()
+                self._notify.speech(self.data["param"]["present"]["message"])
                 self.data["param"]["present"]["message"] = ""
             time.sleep(1)
