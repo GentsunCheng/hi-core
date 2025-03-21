@@ -101,7 +101,7 @@ class Device:
         }
         self.sys_param = {
             "show": False,
-            "uuid": "a3eca894-18a2-49d6-b22d-5fd36feac911"
+            "uuid": "012f3cda-9fa3-4d8b-8194-081e2671491f"
         }
         self.trigger = False
         self.init_time = 0
