@@ -81,7 +81,7 @@ class Refrigeration:
         temperature_code = data["temperature"] - 16
         code1 = power_code << 7 | fan_up_and_down_code << 6 | fan_left_and_right_code << 5 | screen_code << 4 | temperature_code
         code2 = self.mode[data["mode"]] << 4 | self.fan_speed[data["fan_speed"]]
-        key_code = self.key_core[data["key_core"]]
+        key_code = self.key_core["power"]
         param_code = 0x00
         command = self._header + [0x00] + [0x00] + [brands_code >> 8, brands_code & 0xFF] + [code1, code2, 0x00, key_code, param_code]
         checksum = 0
