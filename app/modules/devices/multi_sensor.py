@@ -145,7 +145,7 @@ class Device():
                 current_time = time.time()
 
                 # 根据预设阈值判断 CO2 状态（可根据实际情况调整）
-                if co2 < 800:
+                if co2 < 1000:
                     current_co2_level = "normal"
                 elif co2 < 1500:
                     current_co2_level = "abnormal1"
