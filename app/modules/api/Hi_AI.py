@@ -148,7 +148,7 @@ if __name__ == '__main__':
                     "present": {
                         "status": "on",
                         "lightness": 0,
-                        "color_rgb": "[64, 127, 255]"
+                        "color_rgb": [64, 127, 255]
                     },
                     "selection": {
                         "status": ["__SELECT__", "on", "off"],
