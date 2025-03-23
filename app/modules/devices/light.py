@@ -1,62 +1,65 @@
+import os
 import copy
 import json
-from periphery import GPIO
 import threading
 import time
 
-class Light:
-    def __init__(self, pins, gpiochip="/dev/gpiochip0"):
-        self._rgb = {
-            "red": 0,
-            "green": 0,
-            "blue": 0
-        }
-        self._gpios = {
-            "red": GPIO(gpiochip, pins[0], "out"),
-            "green": GPIO(gpiochip, pins[1], "out"),
-            "blue": GPIO(gpiochip, pins[2], "out")
-        }
-        self._lock = False
-        self._thread = None
-        self._running = False
-
-    def turn_on(self, rgb=[255, 255, 255]):
-        while self._lock:
-            time.sleep(0.1)
-        self._lock = True
-        self._running = True
-        self._rgb["red"] = rgb[0]
-        self._rgb["green"] = rgb[1]
-        self._rgb["blue"] = rgb[2]
-        sorted_rgb = dict(sorted(self._rgb.items(), key=lambda item: item[1]))
-        if not self._thread.is_alive():
-            self._thread = threading.Thread(target=self._run_, daemon=True, args=(sorted_rgb,))
-            self._thread.start()
-        self._lock = False
-
-    def turn_off(self):
-        while self._lock:
-            time.sleep(0.1)
-        self._lock = True
-        if self._running:
-            self._running = False
-            self._thread.join()
+debug_value = os.environ.get('DEBUG')
+if debug_value == 'False' or debug_value is None:
+    from periphery import GPIO
+    class Light:
+        def __init__(self, pins, gpiochip="/dev/gpiochip0"):
+            self._rgb = {
+                "red": 0,
+                "green": 0,
+                "blue": 0
+            }
+            self._gpios = {
+                "red": GPIO(gpiochip, pins[0], "out"),
+                "green": GPIO(gpiochip, pins[1], "out"),
+                "blue": GPIO(gpiochip, pins[2], "out")
+            }
+            self._lock = False
             self._thread = None
-            for value in self._gpios.values():
-                value.write(False)
-        self._lock = False
+            self._running = False
 
-    def _run_(self, rgb):
-        while self._running:
-            time_run = 0
-            for color, value in self._gpios.items():
-                if rgb[color]:
-                    value.write(True)
-            for color, value in rgb.items():
-                time.sleep((value - time_run) / 255)
-                self._gpios[color].write(False)
-                time_run = value
-            time.sleep((255 - time_run) / 255)
+        def turn_on(self, rgb=[255, 255, 255]):
+            while self._lock:
+                time.sleep(0.1)
+            self._lock = True
+            self._running = True
+            self._rgb["red"] = rgb[0]
+            self._rgb["green"] = rgb[1]
+            self._rgb["blue"] = rgb[2]
+            sorted_rgb = dict(sorted(self._rgb.items(), key=lambda item: item[1]))
+            if not self._thread.is_alive():
+                self._thread = threading.Thread(target=self._run_, daemon=True, args=(sorted_rgb,))
+                self._thread.start()
+            self._lock = False
+
+        def turn_off(self):
+            while self._lock:
+                time.sleep(0.1)
+            self._lock = True
+            if self._running:
+                self._running = False
+                self._thread.join()
+                self._thread = None
+                for value in self._gpios.values():
+                    value.write(False)
+            self._lock = False
+
+        def _run_(self, rgb):
+            while self._running:
+                time_run = 0
+                for color, value in self._gpios.items():
+                    if rgb[color]:
+                        value.write(True)
+                for color, value in rgb.items():
+                    time.sleep((value - time_run) / 255)
+                    self._gpios[color].write(False)
+                    time_run = value
+                time.sleep((255 - time_run) / 255)
 
 class Device:
     def __init__(self):
@@ -84,7 +87,8 @@ class Device:
         self.init_time = 0
         self.seed = "x38hdaxggaalglakgzqia69pijeg6p8s"
         self._lock = True
-        self._light = Light(pins=[71, 233, 74])
+        if debug_value == 'False' or debug_value is None:
+            self._light = Light(pins=[71, 233, 74])
         self._thread = threading.Thread(target=self.__run__, daemon=True)
         self._thread.start()
 
@@ -97,6 +101,9 @@ class Device:
         data = copy.deepcopy(self.data)
         try:
             while True:
+                if debug_value == 'True':
+                    time.sleep(1)
+                    continue
                 if json.dumps(self.data["param"]["present"], sort_keys=True) != json.dumps(data["param"]["present"], sort_keys=True):
                     if self.data["param"]["present"]["status"] == "on":
                         self._light.turn_on(self.data["param"]["present"]["color_rgb"])
