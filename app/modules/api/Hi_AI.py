@@ -2,7 +2,6 @@ import os
 import json
 import toml
 import copy
-from markdown_it import MarkdownIt
 
 
 debug_value = os.environ.get('DEBUG')
@@ -18,7 +17,6 @@ class HIAI_auto:
             config = toml.load(f)
             if config["openai"]["api_key"] != "":
                 api_key = config["openai"]["api_key"]
-        self._md = MarkdownIt()
         if debug_value == 'False' or debug_value is None:
             self._client = OpenAI(api_key=api_key, base_url=api_base)
         module_dir = os.path.dirname(__file__)
