@@ -217,14 +217,8 @@ class DeviceManager:
 
     def run(self):
         """ 进入主循环，定期发送命令 """
-        duration = 0
         while True:
-            duration += 1
             time.sleep(1)
-            if duration >= 60:
-                duration = 0
-                for i in range(len(self.device_instances)):
-                    self.all_device_config["devices"][i] = self.device_instances[i].data
             self.trig_device_config["devices"] = []
             for device_id, device in self.device_instances.items():
                 if device.trigger and self.init_time_dict.get(device_id) is None:
