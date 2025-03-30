@@ -88,7 +88,7 @@ class Device:
         self.seed = "x38hdaxggaalglakgzqia69pijeg6p8s"
         self._lock = True
         if debug_value == 'False' or debug_value is None:
-            self._light = Light(pins=[71, 233, 74])
+            self._light = Light(pins=[233, 71, 74])
         self._thread = threading.Thread(target=self.__run__, daemon=True)
         self._thread.start()
 
