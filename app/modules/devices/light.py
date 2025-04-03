@@ -22,7 +22,7 @@ if debug_value == 'False' or debug_value is None:
             }
             self._lock = False
             self._running = False
-            self._thread = threading(target=self._run_, daemon=True)
+            self._thread = threading.Thread(target=self._run_, daemon=True)
             self._thread.start()
 
         def turn_on(self, rgb=[255, 255, 255]):
@@ -113,3 +113,13 @@ class Device:
                 time.sleep(1)
         except KeyboardInterrupt:
             self._thread.join()
+
+
+if __name__ == "__main__":
+    light = Light(pins=[233, 71, 74])
+    light.turn_on([255, 255, 255])
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("done")
