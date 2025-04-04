@@ -37,7 +37,7 @@ class SmartCam:
             "person": time.time(),
             "fire": time.time()
         }
-        self._model = YOLO(model=str(model_path))
+        self._model = YOLO(model=str(model_path), task="detect")
         self._thread = threading.Thread(target=self._get_image, daemon=True)
         self._thread.start()
 
