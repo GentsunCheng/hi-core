@@ -1,6 +1,7 @@
 import os
 import cv2
 import time
+import zipfile
 import requests
 import shutil
 import threading
@@ -10,14 +11,18 @@ class SmartCam:
     def __init__(self):
         self._cap = cv2.VideoCapture("/dev/video1", cv2.CAP_V4L2)
         self._frame = None
-        model_path = os.getcwd() + "/source/yolo11n.pt"
+        model_path = os.getcwd() + "/source/yolo11n_ncnn_model"
         if not os.path.exists(model_path):
             print("Model not found, start Download...")
-            url = "https://static.orii.top/yolo11n.pt"
+            url = "https://static.orii.top/yolo11n_ncnn_model.zip"
             with requests.get(url, stream=True) as response:
                 with open(model_path, "wb") as file:
                     shutil.copyfileobj(response.raw, file)
             print("Download finished")
+            model_zip = os.getcwd() + "/source/yolo11n_ncnn_model.zip"
+            with zipfile.ZipFile(model_zip, 'r') as zip_ref:
+                zip_ref.extractall(model_path)
+            os.remove(model_zip)
         self._complete = False
         self._inited = False
         self._detect_old = {
