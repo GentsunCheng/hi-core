@@ -33,7 +33,7 @@ if debug_value == 'False' or debug_value is None:
             self._rgb["green"] = rgb[1]
             self._rgb["blue"] = rgb[2]
             self._sorted_rgb = dict(sorted(self._rgb.items(), key=lambda item: item[1]))
-            self._running = False
+            self._running = True
             self._lock = False
 
         def turn_off(self):
