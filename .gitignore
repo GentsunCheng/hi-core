@@ -175,3 +175,8 @@ source/fullchain.pem
 source/privkey.pem
 source/data.db
 source/yolo11n.pt
+source/yolo11n_ncnn_model/metadata.yaml
+.gitignore
+source/yolo11n_ncnn_model/model.ncnn.bin
+source/yolo11n_ncnn_model/model_ncnn.py
+source/yolo11n_ncnn_model/model.ncnn.param
