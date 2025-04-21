@@ -67,173 +67,247 @@ class HIAI_auto:
 if __name__ == '__main__':
     HIAI = HIAI_auto()
     data = {
-    "status": "init",
-    "init_param": {
-        "designation": "Madis",
-        "username": "GentsunCheng",
-        "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence."
-    },
-    "devices":
-        [
+        "status": "init",
+        "init_param": {
+            "custom": "No need to be energy efficient, but you need to be comfortable, no light when you sleep, and absolute silence.",
+            "designation": "Madis",
+            "username": "GentsunCheng"
+        },
+        "devices": [
             {
-                "name": "语音通知",
+                "name": "draperies",
                 "id": 0,
-                "readme": "Non-physical devices that transmit voice notifications, warnings, and other information. Note that you need to convert the units of measure to text.",
-                "type": "virtual_out",
+                "type": "draperies",
+                "readme": "This unit is an actuator that controls the draperies. It can be used to open or close the draperies.",
                 "param": {
                     "present": {
-                        "message": "",
-                        "volume": 50
+                    "status": "closed"
                     },
                     "selection": {
-                        "message": "",
-                        "volume": ["__RANGE__", 0, 100],
+                    "status": [
+                        "__SELECT__",
+                        "open",
+                        "closed"
+                    ]
                     }
                 }
             },
             {
-                "name": "语音控制",
+                "name": "speech_recognation",
                 "id": 1,
+                "type": "virtual_in",
                 "readme": "Non-physical device through which the user's voice will be entered",
-                "type": "virtual_in",
                 "param": {
                     "present": {
-                        "message": ""
+                    "message": ""
                     }
                 }
             },
             {
-                "name": "天气信息",
+                "name": "refrigeration",
                 "id": 2,
-                "readme": "Non-physical device with internet access to current weather",
-                "type": "virtual_in",
+                "type": "refrigeration",
+                "readme": "This unit is an air conditioner with adjustable modes, temperature and air speed",
                 "param": {
                     "present": {
-                        "skycon": "sunny",
-                        "temp": {
-                            "outdoor": 33,
-                            "apparent":30
-                        }
-                    },
-                    "humidity": 0.83,
-                    "wind_speed" : "2km"
-                    }
-                },
-                {
-                    "name": "卧室灯",
-                    "id": 3,
-                    "readme": "This device is illuminated with brightness and color control",
-                    "type": "light",
-                    "param": {
-                    "present": {
-                        "status": "on",
-                        "lightness": 0,
-                        "color": "yellow"
+                    "power": "on",
+                    "fan_up_and_down": "on",
+                    "screen": "off",
+                    "fan_left_and_right": "on",
+                    "temperature": 23,
+                    "mode": "cool",
+                    "fan_speed": "auto"
                     },
                     "selection": {
-                        "status": ["__SELECT__", "on", "off"],
-                        "lightness": ["__SELECT__", 0, 1, 2, 3],
-                        "color": ["__SELECT__", "yellow", "white"]
+                    "power": [
+                        "__SELECT__",
+                        "off",
+                        "on"
+                    ],
+                    "fan_up_and_down": [
+                        "__SELECT__",
+                        "off",
+                        "on"
+                    ],
+                    "screen": [
+                        "__SELECT__",
+                        "off",
+                        "on"
+                    ],
+                    "fan_left_and_right": [
+                        "__SELECT__",
+                        "off",
+                        "on"
+                    ],
+                    "temperature": [
+                        "__RANGE__",
+                        16,
+                        30
+                    ],
+                    "mode": [
+                        "__SELECT__",
+                        "auto",
+                        "cool",
+                        "dry",
+                        "wind",
+                        "heat"
+                    ],
+                    "fan_speed": [
+                        "__SELECT__",
+                        "auto",
+                        "low",
+                        "medium",
+                        "high"
+                    ]
                     }
                 }
             },
             {
-                "name": "客厅灯",
+                "name": "notify",
+                "id": 3,
+                "type": "virtual_out",
+                "readme": "Non-physical device that transmits notifications, warnings, etc",
+                "param": {
+                    "present": {
+                    "message": ""
+                    },
+                    "selection": {
+                    "message": ""
+                    }
+                }
+            },
+            {
+                "name": "door",
                 "id": 4,
-                "readme": "This device is illuminated with brightness and color control",
-                "type": "light",
+                "type": "door",
+                "readme": "This is a door. It can be used to open and close the door.",
                 "param": {
                     "present": {
-                        "status": "on",
-                        "lightness": 0,
-                        "color_rgb": [64, 127, 255]
+                    "status": "closed"
                     },
                     "selection": {
-                        "status": ["__SELECT__", "on", "off"],
-                        "lightness": ["__RANGE__", 0, 100],
-                        "color_rgb": [["__RANGE__", 0, 255], ["__RANGE__", 0, 255], ["__RANGE__", 0, 255]]
+                    "status": [
+                        "__SELECT__",
+                        "open"
+                    ]
                     }
                 }
             },
             {
-                "name": "客厅空调",
+                "name": "rgb_light",
                 "id": 5,
-                "readme": "This unit is an air conditioner with adjustable modes, temperature and air speed",
-                "type": "refrigeration",
+                "type": "light",
+                "readme": "This unit is an actuator that controls the rgb light. It can be used to change the color of the light.",
                 "param": {
                     "present": {
-                        "status": "off",
-                        "temp": 25,
-                        "air_velocity": "1",
-                        "mode": "cold"
+                    "status": "off",
+                    "color_rgb": [
+                        255,
+                        8,
+                        255
+                    ]
                     },
                     "selection": {
-                        "status": ["__SELECT__", "on", "off"],
-                        "temp": ["__RANGE__", 16, 30],
-                        "air_velocity": ["__SELECT__", 1, 2, 3],
-                        "mode": ["__SELECT__", "cold", "hot", "dry", "air_circulate"]
+                    "status": [
+                        "__SELECT__",
+                        "on",
+                        "off"
+                    ],
+                    "color_rgb": [
+                        [
+                            "__RANGE__",
+                            0,
+                            255
+                        ],
+                        [
+                            "__RANGE__",
+                            0,
+                            255
+                        ],
+                        [
+                            "__RANGE__",
+                            0,
+                            255
+                        ]
+                    ]
                     }
                 }
             },
             {
-                "name": "卧室空调",
+                "name": "smartcam",
                 "id": 6,
-                "readme": "This unit is an air conditioner with adjustable modes, temperature and air speed",
-                "type": "refrigeration",
+                "type": "virtual_in",
+                "readme": "Non-physical device through which the user's voice will be entered",
                 "param": {
                     "present": {
-                        "status": "off",
-                        "temp": 28,
-                        "air_velocity": "3",
-                        "mode": "cold"
-                    },
-                    "selection": {
-                        "status": ["__SELECT__", "on", "off"],
-                        "temp": ["__RANGE__", 16, 30],
-                        "air_velocity": ["__SELECT__", 1, 2, 3],
-                        "mode": ["__SELECT__", "cold", "hot", "dry", "air_circulate"]
+                    "message": ""
                     }
                 }
             },
             {
-                "name": "二氧化碳传感器",
+                "name": "multi_sensor",
                 "id": 7,
-                "readme": "This device is a carbon dioxide sensor to view carbon dioxide concentration",
                 "type": "sensor",
+                "readme": "Its a multi sensor to measure CO2, TVOC, Light, Temperature and Humidity",
                 "param": {
                     "present": {
+                    "co2": {
                         "content": 400,
                         "measure": "ppm"
+                    },
+                    "tvoc": {
+                        "content": 0,
+                        "measure": "ppb"
+                    },
+                    "light": {
+                        "content": 0,
+                        "measure": "lx"
+                    },
+                    "temperature": {
+                        "content": 25,
+                        "measure": "°C"
+                    },
+                    "humidity": {
+                        "content": 70,
+                        "measure": "%"
                     }
-                }
-            },
-            {
-                "name": "卧室摄像头",
-                "id": 8,
-                "readme": "The device is a smart camera that detects preset scenarios including, but not limited to, changes in people (e.g., entering and exiting, sleeping, etc.), biological information, and disasters through visual modeling.",
-                "type": "smart_sensor",
-                "param": {
-                    "present": {
-                        "message": ""
                     }
                 }
             }
         ]
-    }
+        }
     optdata = [
         {
             "status": "trigger",
             "devices":
             [
                 {
-                    "name": "二氧化碳传感器",
+                    "name": "multi_sensor",
                     "id": 7,
-                    "readme": "This device is a carbon dioxide sensor to view carbon dioxide concentration",
+                    "readme": "Its a multi sensor to measure CO2, TVOC, Light, Temperature and Humidity",
                     "type": "sensor",
                     "param": {
                         "present": {
-                            "content": 700,
-                            "measure": "ppm"
+                            "co2": {
+                                "content": 1129,
+                                "measure": "ppm"
+                            },
+                            "tvoc": {
+                                "content": 3,
+                                "measure": "ppb"
+                            },
+                            "light": {
+                                "content": 1209,
+                                "measure": "lx"
+                            },
+                            "temperature": {
+                                "content": 26.3,
+                                "measure": "°C"
+                            },
+                            "humidity": {
+                                "content": 82.5,
+                                "measure": "%"
+                            }
                         }
                     }
                 }
@@ -244,7 +318,7 @@ if __name__ == '__main__':
             "devices":
             [
                 {
-                    "name": "语音控制",
+                    "name": "speech_recognation",
                     "id": 1,
                     "readme": "Non-physical device through which the user's voice will be entered",
                     "type": "virtual_in",
@@ -261,13 +335,13 @@ if __name__ == '__main__':
             "devices":
             [
                 {
-                    "name": "语音控制",
+                    "name": "speech_recognation",
                     "id": 1,
                     "readme": "Non-physical device through which the user's voice will be entered",
                     "type": "virtual_in",
                     "param": {
                         "present": {
-                            "message": "今天天气咋样"
+                            "message": "打开窗帘"
                         }
                     }
                 }
@@ -295,4 +369,5 @@ if __name__ == '__main__':
     HIAI.set_data(json.dumps(data))
     for opt in optdata:
         content = HIAI.oprate(json.dumps(opt))
-        print(content)
+        print("Tigger data: ", opt)
+        print("Response command: ", content)
