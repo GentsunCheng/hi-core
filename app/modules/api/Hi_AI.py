@@ -297,7 +297,7 @@ if __name__ == '__main__':
                                 "measure": "ppb"
                             },
                             "light": {
-                                "content": 1209,
+                                "content": 221.3,
                                 "measure": "lx"
                             },
                             "temperature": {
