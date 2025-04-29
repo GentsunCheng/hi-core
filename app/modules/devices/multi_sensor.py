@@ -80,6 +80,7 @@ class Device():
             "readme": "Its a multi sensor to measure CO2, TVOC, Light, Temperature and Humidity",
             "param": {
                 "present": {
+                    "message":"",
                     "co2": {
                         "content": 400,
                         "measure": "ppm"
@@ -126,8 +127,11 @@ class Device():
         last_trigger_time_tvoc = time.time()
         last_trigger_time_temperature = time.time()
         last_trigger_time_humidity = time.time()
+        message_foot = " not at normal value"
 
         while True:
+            message_body = ""
+            self.data["param"]["present"]["message"] = ""
             try:
                 if debug_value == 'True':
                     co2, tvoc = random.randint(380,450), random.randint(0,10)
@@ -149,32 +153,43 @@ class Device():
                     current_co2_level = "normal"
                 elif co2 < 1500:
                     current_co2_level = "abnormal1"
+                    message_body = message_body + "CO2 and "
                 else:
                     current_co2_level = "abnormal2"
+                    message_body = message_body + "CO2 and "
 
                 # 根据预设阈值判断 TVOC 状态（可根据实际情况调整）
                 if tvoc < 500:
                     current_tvoc_level = "normal"
                 elif tvoc < 1000:
                     current_tvoc_level = "abnormal1"
+                    message_body = message_body + "TVOC and "
                 else:
                     current_tvoc_level = "abnormal2"
+                    message_body = message_body + "TVOC and "
 
                 # 根据预设阈值判断 Temperature 状态（可根据实际情况调整）
                 if temperature < 18:
                     current_temperature_level = "cold" 
+                    message_body = message_body + "temperature and "
                 elif 18 <= temperature < 30:
                     current_temperature_level = "normal"
                 else:
                     current_temperature_level = "hot"
+                    message_body = message_body + "temperature and "
 
                 # 根据预设阈值判断 Humidity 状态（可根据实际情况调整）
                 if humidity < 50:
                     current_humidity_level = "dry"
+                    message_body = message_body + "humidity"
                 elif 50 <= humidity <= 80:
                     current_humidity_level = "normal"
                 else:
                     current_humidity_level = "wet"
+                    message_body = message_body + "humidity"
+
+                if message_body != "":
+                    self.data["param"]["present"]["message"] = message_body + message_foot
 
                 # ----- CO2 逻辑 -----
                 # 情况1：从正常进入异常
