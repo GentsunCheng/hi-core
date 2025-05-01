@@ -243,19 +243,25 @@ class DeviceManager:
             return
         for item in data_decode["actions"]:
             if self.device_instances[item["id"]]:
+                device_instances_present = copy.deepcopy(self.device_instances[item["id"]].data["param"]["present"])
+                all_device_config_present = copy.deepcopy(self.all_device_config["devices"][item["id"]]["param"]["present"])
                 for key, value in item["param"].items():
-                    if key in self.device_instances[item["id"]].data["param"]["present"]:
-                        expected_type = type(self.device_instances[item["id"]].data["param"]["present"][key])
+                    if key in device_instances_present:
+                        expected_type = type(device_instances_present[key])
                         try:
-                            self.device_instances[item["id"]].data["param"]["present"][key] = expected_type(value)
+                            device_instances_present[key] = expected_type(value)
                         except (ValueError, TypeError):
                             print(f"参数转换失败：键 '{key}'，值 '{value}' 无法转换为 {expected_type.__name__}")
-                    if key in self.all_device_config["devices"][item["id"]]["param"]["present"]:
-                        expected_type = type(self.all_device_config["devices"][item["id"]]["param"]["present"][key])
+                    if key in all_device_config_present:
+                        expected_type = type(all_device_config_present[key])
                         try:
-                            self.all_device_config["devices"][item["id"]]["param"]["present"][key] = expected_type(value)
+                            all_device_config_present[key] = expected_type(value)
                         except (ValueError, TypeError):
                             print(f"参数转换失败：键 '{key}'，值 '{value}' 无法转换为 {expected_type.__name__}")
+                self.device_instances[item["id"]].data["param"]["present"] = copy.deepcopy(device_instances_present)
+                self.all_device_config["devices"][item["id"]]["param"]["present"] = copy.deepcopy(all_device_config_present)
+                del device_instances_present
+                del all_device_config_present
                 self.hi_ai.set_data(json.dumps(self.all_device_config))
                 if hasattr(self.device_instances[item["id"]], "seed"):
                     self._update_param_in_db(db="param", id=self.device_instances[item["id"]].seed, value=item["param"])
