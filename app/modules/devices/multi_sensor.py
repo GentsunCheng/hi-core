@@ -128,9 +128,10 @@ class Device():
         last_trigger_time_temperature = time.time()
         last_trigger_time_humidity = time.time()
         message_foot = " not at normal value"
+        abnormal_value = []
 
         while True:
-            message_body = ""
+            abnormal_value.clear()
             self.data["param"]["present"]["message"] = ""
             try:
                 if debug_value == 'True':
@@ -153,42 +154,47 @@ class Device():
                     current_co2_level = "normal"
                 elif co2 < 1500:
                     current_co2_level = "abnormal1"
-                    message_body = message_body + "CO2 and "
+                    abnormal_value.append("CO2")
                 else:
                     current_co2_level = "abnormal2"
-                    message_body = message_body + "CO2 and "
+                    abnormal_value.append("CO2")
 
                 # 根据预设阈值判断 TVOC 状态（可根据实际情况调整）
                 if tvoc < 500:
                     current_tvoc_level = "normal"
                 elif tvoc < 1000:
                     current_tvoc_level = "abnormal1"
-                    message_body = message_body + "TVOC and "
+                    abnormal_value.append("TVOC")
                 else:
                     current_tvoc_level = "abnormal2"
-                    message_body = message_body + "TVOC and "
+                    abnormal_value.append("TVOC")
 
                 # 根据预设阈值判断 Temperature 状态（可根据实际情况调整）
                 if temperature < 18:
                     current_temperature_level = "cold" 
-                    message_body = message_body + "temperature and "
+                    abnormal_value.append("temperature")
                 elif 18 <= temperature < 30:
                     current_temperature_level = "normal"
                 else:
                     current_temperature_level = "hot"
-                    message_body = message_body + "temperature and "
+                    abnormal_value.append("temperature")
 
                 # 根据预设阈值判断 Humidity 状态（可根据实际情况调整）
                 if humidity < 50:
                     current_humidity_level = "dry"
-                    message_body = message_body + "humidity"
+                    abnormal_value.append("humidity")
                 elif 50 <= humidity <= 80:
                     current_humidity_level = "normal"
                 else:
                     current_humidity_level = "wet"
-                    message_body = message_body + "humidity"
+                    abnormal_value.append("humidity")
 
-                if message_body != "":
+                if abnormal_value != []:
+                    message_body_tmp = ""
+                    for item in abnormal_value:
+                        message_body_tmp = message_body_tmp + item + " and "
+                    message_body = message_body_tmp[:-5]
+                    del message_body_tmp
                     self.data["param"]["present"]["message"] = message_body + message_foot
 
                 # ----- CO2 逻辑 -----
