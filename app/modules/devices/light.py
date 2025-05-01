@@ -4,62 +4,9 @@ import json
 import threading
 import time
 
+from lightmodule.lightmodule import Light
+
 debug_value = os.environ.get('DEBUG')
-if debug_value == 'False' or debug_value is None:
-    from periphery import GPIO
-    class Light:
-        def __init__(self, pins, gpiochip="/dev/gpiochip0"):
-            self._rgb = {
-                "red": 0,
-                "green": 0,
-                "blue": 0
-            }
-            self._sorted_rgb = copy.deepcopy(self._rgb)
-            self._gpios = {
-                "red": GPIO(gpiochip, pins[0], "out"),
-                "green": GPIO(gpiochip, pins[1], "out"),
-                "blue": GPIO(gpiochip, pins[2], "out")
-            }
-            self._lock = False
-            self._running = False
-            self._thread = threading.Thread(target=self._run_, daemon=True)
-            self._thread.start()
-
-        def turn_on(self, rgb=[255, 255, 255]):
-            while self._lock:
-                time.sleep(0.1)
-            self._lock = True
-            self._rgb["red"] = rgb[0]
-            self._rgb["green"] = rgb[1]
-            self._rgb["blue"] = rgb[2]
-            self._sorted_rgb = dict(sorted(self._rgb.items(), key=lambda item: item[1]))
-            self._running = True
-            self._lock = False
-
-        def turn_off(self):
-            while self._lock:
-                time.sleep(0.1)
-            self._lock = True
-            if self._running:
-                self._running = False
-                for value in self._gpios.values():
-                    value.write(False)
-            self._lock = False
-
-        def _run_(self):
-            while True:
-                if not self._running:
-                    time.sleep(0.3)
-                    continue
-                time_run = 0
-                for color, value in self._gpios.items():
-                    if self._sorted_rgb[color]:
-                        value.write(True)
-                for color, value in self._sorted_rgb.items():
-                    time.sleep((value - time_run) / 255)
-                    self._gpios[color].write(False)
-                    time_run = value
-                time.sleep((255 - time_run) / 255)
 
 class Device:
     def __init__(self):
@@ -88,7 +35,7 @@ class Device:
         self.seed = "x38hdaxggaalglakgzqia69pijeg6p8s"
         self._lock = True
         if debug_value == 'False' or debug_value is None:
-            self._light = Light(pins=[233, 71, 74])
+            self._light = Light(233, 71, 74)
         self._thread = threading.Thread(target=self.__run__, daemon=True)
         self._thread.start()
 
@@ -98,28 +45,33 @@ class Device:
     def __run__(self):
         while self._lock:
             time.sleep(1)
-        data = copy.deepcopy(self.data)
+        last_present = copy.deepcopy(self.data["param"]["present"])
         try:
             while True:
                 if debug_value == 'True':
                     time.sleep(1)
                     continue
-                if json.dumps(self.data["param"]["present"], sort_keys=True) != json.dumps(data["param"]["present"], sort_keys=True):
-                    if self.data["param"]["present"]["status"] == "on":
-                        self._light.turn_on(self.data["param"]["present"]["color_rgb"])
-                    elif self.data["param"]["present"]["status"] == "off":
+                current_present = self.data["param"]["present"]
+                if current_present != last_present:
+                    status = current_present.get("status")
+                    color = current_present.get("color_rgb", [0, 0, 0])
+                    if status == "on":
+                        self._light.turn_on(color[0], color[1], color[2])
+                    else:
                         self._light.turn_off()
-                    data = copy.deepcopy(self.data)
+                    last_present = copy.deepcopy(current_present)
                 time.sleep(1)
         except KeyboardInterrupt:
-            self._thread.join()
+            pass
 
 
 if __name__ == "__main__":
-    light = Light(pins=[233, 71, 74])
-    light.turn_on([255, 255, 255])
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("done")
+    device = Device()
+    device.unlock()
+    device.data["param"]["present"]["status"] = "on"
+    device.data["param"]["present"]["color_rgb"] = [255, 255, 0]
+    time.sleep(5)
+    device.data["param"]["present"]["status"] = "off"
+    time.sleep(1)
+    print("done")
+
