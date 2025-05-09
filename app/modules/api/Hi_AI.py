@@ -367,7 +367,11 @@ if __name__ == '__main__':
     ]
 
     HIAI.set_data(json.dumps(data))
-    for opt in optdata:
-        content = HIAI.oprate(json.dumps(opt))
-        print("Tigger data: ", opt)
-        print("Response command: ", content)
+    # for opt in optdata:
+    #     content = HIAI.oprate(json.dumps(opt))
+    #     print("Tigger data: ", opt)
+    #     print("Response command: ", content)
+    i = int(input("测试项目:")) + 1
+    content = HIAI.oprate(json.dumps(optdata[i]))
+    print("触发数据: ", optdata[i])
+    print("响应指令: ", content)
